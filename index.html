@@ -11,8 +11,11 @@
 
     <title>Happy King</title>
 
+    <!-- Custom CSS -->
+    <link href="./css/style.css" rel="stylesheet" />
+
     <!-- VENDORS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
 
 </head>
 
@@ -34,11 +37,38 @@
 
     <div class="container">
       <div class="row">
+        <div class="col-xs-12">
+          <div class="alert alert-info" role="alert"><strong>Welcome to Happy Kings!</strong> You are just a lonely peasant, work a bit to earn some gold!</div>
+        </div>
+      </div>
+      <div class="row">
         <div class="col-xs-5">
-          
+          <h2>$<span id="gold">0</span></h2>
+          <button type="button" class="btn btn-default" id="main_click_btn">Work</button>
         </div>
         <div class="col-xs-7">
-
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#upgrades" aria-controls="home" role="tab" data-toggle="tab">Upgrades</a></li>
+            <li><a href="#workers" aria-controls="home" role="tab" data-toggle="tab">Workers</a></li>
+          </ul>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="upgrades">
+              <div class="row upgrade-row">
+                <div class="col-xs-12">
+                  <div class="panel panel-default">
+                    <div class="panel-body">
+                      Corn Grower - Add 2 gold to your work value
+                      <div class="pull-right">
+                        <button type="button" class="btn btn-default buy-upgrade-btn" data-upId="1">Buy</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="workers">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -47,6 +77,9 @@
     <!-- VENDORS -->
     <script src="http://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- Game Code -->
+    <script src="./js/bundle.js"></script>
 
 </body>
 

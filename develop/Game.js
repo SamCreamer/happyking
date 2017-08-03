@@ -1,4 +1,5 @@
 const UpgradeList = require('./UpgradeList');
+const WorkerList = require('./WorkerList');
 const Utils = require('./Utils');
 
 /**
@@ -19,8 +20,8 @@ module.exports = class Game {
     this.goldPerSecond = 0;
     this.upgrades = UpgradeList;
     this.eligibleUpgrades = this.getEligibleUpgrades();
-    console.log(this.eligibleUpgrades);
-    this.workers = [];
+    this.workers = WorkerList;
+		this.eligibleWorkers = this.getEligibleWorkers();
 
     /**
     * UI Elements
@@ -33,10 +34,19 @@ module.exports = class Game {
     * Button Listeners
     */
     this.mainBtn.addEventListener('click', function () {
-      self.gold += self.workValue;
+      self.work()
       self.updateUI();
     });
 
+		// Create upgrade button events
+		for (let i = 0; i < this.buyUpgradeBtn.length; i++) {
+			this.buyUpgradeBtn[i].addEventListener('click', function (e) {
+				const upgradeId = parseInt(this.getAttribute('data-upid'));
+				if (self.buyUpgrade(upgradeId)) {
+					this.parentNode.parentNode.parentNode.remove();
+				}
+			});
+		}
 
 	}
 
@@ -44,6 +54,7 @@ module.exports = class Game {
   * Runs once per second
   */
   gameLoop() {
+		console.log(this);
     this.gold += this.goldPerSecond;
     this.allTimeGold += this.goldPerSecond;
 
@@ -58,6 +69,14 @@ module.exports = class Game {
     this.goldEl.innerHTML = this.gold;
   }
 
+	/**
+	* work
+	*/
+	work() {
+		this.gold += this.workValue;
+		this.allTimeGold += this.workValue;
+	}
+
   /**
   * Gets eligible upgrades and returns them
   */
@@ -66,5 +85,39 @@ module.exports = class Game {
       return upgrade.eligibility >= this.allTimeGold && upgrade.owned === false;
     }.bind(this));
   }
+
+	/**
+	* Gets eligible workers
+	*/
+	getEligibleWorkers() {
+		return this.workers.filter(function (worker) {
+			return worker.eligibility >= this.allTimeGold && worker.hired === false;
+		}.bind(this));
+	}
+
+	/**
+	* Buy upgrade
+	*
+	* upid {int} Id of the upgrade
+	* return {bool} true if successfully bought
+	*/
+	buyUpgrade(upid) {
+		const upgrade = this.upgrades.find(function (upgrade) {
+			return upgrade.id === upid;
+		});
+
+		if (this.gold < upgrade.cost) {
+			return false;
+		}
+
+		this.gold -= upgrade.cost;
+		this.workValue += upgrade.workValue;
+		this.goldPerSecond += upgrade.goldPerSecond;
+		upgrade.owned = true;
+		this.updateUI();
+
+		return true;
+
+	}
 
 };

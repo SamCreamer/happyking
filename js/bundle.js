@@ -18,6 +18,7 @@ module.exports = class Game {
     this.gold = 0;
     this.allTimeGold = 0;
     this.workValue = 1;
+		this.multiplier = 1;
     this.goldPerSecond = 0;
     this.upgrades = UpgradeList;
     this.eligibleUpgrades = this.getEligibleUpgrades();
@@ -55,7 +56,6 @@ module.exports = class Game {
   * Runs once per second
   */
   gameLoop() {
-		console.log(this);
     this.gold += this.goldPerSecond;
     this.allTimeGold += this.goldPerSecond;
 

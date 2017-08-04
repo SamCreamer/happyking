@@ -43,16 +43,23 @@
       </div>
       <div class="row">
         <div class="col-xs-5">
-          <h2>$<span id="gold">0</span></h2>
+          <h2><span id="gold">0</span> Gold</h2>
           <button type="button" class="btn btn-default" id="main_click_btn">Work</button>
+          <h3>Work Value: <span id="work_value">1</span></h3>
+          <h3>Gold per Second: <span id="gps">0</span></h3>
         </div>
         <div class="col-xs-7">
           <ul class="nav nav-tabs">
-            <li class="active"><a href="#upgrades" aria-controls="home" role="tab" data-toggle="tab">Upgrades</a></li>
+            <li class="active"><a href="#properties" aria-controls="home" role="tab" data-toggle="tab">Properties</a></li>
             <li><a href="#workers" aria-controls="home" role="tab" data-toggle="tab">Workers</a></li>
+            <li><a href="#upgrades" aria-controls="home" role="tab" data-toggle="tab">Upgrades</a></li>
           </ul>
           <div class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="upgrades">
+            <div role="tabpanel" class="tab-pane active" id="properties">
+            </div>
+            <div role="tabpanel" class="tab-pane" id="workers">
+            </div>
+            <div role="tabpanel" class="tab-pane" id="upgrades">
               <div class="row upgrade-row">
                 <div class="col-xs-12">
                   <div class="panel panel-default">
@@ -65,8 +72,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-            <div role="tabpanel" class="tab-pane" id="workers">
             </div>
           </div>
         </div>

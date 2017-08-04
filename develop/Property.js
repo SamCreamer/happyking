@@ -3,7 +3,7 @@ module.exports = class Property {
   * Id {int}
   * Name {string}
   * Cost {int} How many gold does it cost
-  * Cost Multiplier {float} 
+  * Cost Multiplier {float}
   * goldPerSecond {int}
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
@@ -19,8 +19,16 @@ module.exports = class Property {
     this.eligibility = eligibility;
   }
 
+  /**
+   * Update the cost of this property 
+   */
   updateCost() {
-
+    const newCost = parseInt(this.cost * this.costMultiplier);
+    if (newCost === this.cost) {
+      return this.cost + 1;
+    } else {
+      return newCost;
+    }
   }
 
 };

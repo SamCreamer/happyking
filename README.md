@@ -1,0 +1,2 @@
+# happyking
+Idle game

@@ -8,17 +8,17 @@ const Utils = require('./Utils');
 module.exports = class Game {
 
 	constructor() {
-    // Instead of binding this to everything individually
-    const self = this;
+		// Instead of binding this to everything individually
+		const self = this;
 
-    /**
-    * Game Variables
-    */
-    this.gold = 0;
-    this.allTimeGold = 0;
-    this.workValue = 1;
+		/**
+		* Game Variables
+		*/
+		this.gold = 0;
+		this.allTimeGold = 0;
+		this.workValue = 1;
 		this.multiplier = 1;
-    this.goldPerSecond = 0;
+		this.goldPerSecond = 0;
 		this.ownedProperties = {};
 		this.hiredWorkers = {};
 		this.ownedUpgrades = {};
@@ -26,25 +26,25 @@ module.exports = class Game {
 		/**
 		* Global elements
 		*/
-    this.upgrades = UpgradeList;
-    this.eligibleUpgrades = this.getEligibleUpgrades();
-    this.workers = WorkerList;
+		this.upgrades = UpgradeList;
+		this.eligibleUpgrades = this.getEligibleUpgrades();
+		this.workers = WorkerList;
 		this.eligibleWorkers = this.getEligibleWorkers();
 
-    /**
-    * UI Elements
-    */
-    this.goldEl = document.getElementById('gold');
-    this.mainBtn = document.getElementById('main_click_btn');
-    this.buyUpgradeBtn = document.getElementsByClassName('buy-upgrade-btn');
+		/**
+		* UI Elements
+		*/
+		this.goldEl = document.getElementById('gold');
+		this.mainBtn = document.getElementById('main_click_btn');
+		this.buyUpgradeBtn = document.getElementsByClassName('buy-upgrade-btn');
 
-    /**
-    * Button Listeners
-    */
-    this.mainBtn.addEventListener('click', function () {
-      self.work()
-      self.updateUI();
-    });
+		/**
+		* Button Listeners
+		*/
+		this.mainBtn.addEventListener('click', function () {
+			self.work()
+			self.updateUI();
+		});
 
 		// Create upgrade button events
 		for (let i = 0; i < this.buyUpgradeBtn.length; i++) {
@@ -58,23 +58,23 @@ module.exports = class Game {
 
 	}
 
-  /**
-  * Runs once per second
-  */
-  gameLoop() {
-    this.gold += this.goldPerSecond;
-    this.allTimeGold += this.goldPerSecond;
+	/**
+	* Runs once per second
+	*/
+	gameLoop() {
+		this.gold += this.goldPerSecond;
+		this.allTimeGold += this.goldPerSecond;
 
-    this.eligibleUpgrades = this.getEligibleUpgrades();
-    this.updateUI();
-  }
+		this.eligibleUpgrades = this.getEligibleUpgrades();
+		this.updateUI();
+	}
 
-  /**
-  * Updates the UI
-  */
-  updateUI() {
-    this.goldEl.innerHTML = this.gold;
-  }
+	/**
+	* Updates the UI
+	*/
+	updateUI() {
+		this.goldEl.innerHTML = this.gold;
+	}
 
 	/**
 	* work
@@ -84,14 +84,14 @@ module.exports = class Game {
 		this.allTimeGold += this.workValue;
 	}
 
-  /**
-  * Gets eligible upgrades and returns them
-  */
-  getEligibleUpgrades() {
-    return this.upgrades.filter(function (upgrade) {
-      return upgrade.eligibility >= this.allTimeGold && upgrade.owned === false;
-    }.bind(this));
-  }
+	/**
+	* Gets eligible upgrades and returns them
+	*/
+	getEligibleUpgrades() {
+		return this.upgrades.filter(function (upgrade) {
+			return upgrade.eligibility >= this.allTimeGold && upgrade.owned === false;
+		}.bind(this));
+	}
 
 	/**
 	* Gets eligible workers

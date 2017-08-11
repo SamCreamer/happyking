@@ -1,5 +1,7 @@
 const UpgradeList = require('./UpgradeList');
 const WorkerList = require('./WorkerList');
+const PropertyList = require('./PropertyList');
+const Setup = require('./Setup');
 const Utils = require('./Utils');
 
 /**
@@ -30,13 +32,18 @@ module.exports = class Game {
 		this.eligibleUpgrades = this.getEligibleUpgrades();
 		this.workers = WorkerList;
 		this.eligibleWorkers = this.getEligibleWorkers();
+		this.properties = PropertyList;
+		this.eligibleProperties = this.getEligibleProperties();
 
 		/**
 		* UI Elements
 		*/
 		this.goldEl = document.getElementById('gold');
 		this.mainBtn = document.getElementById('main_click_btn');
-		this.buyUpgradeBtn = document.getElementsByClassName('buy-upgrade-btn');
+		this.upgradesDiv = document.getElementById('upgrades');
+		this.propertiesDiv = document.getElementById('properties');
+
+		// this.buyUpgradeBtn = document.getElementsByClassName('buy-upgrade-btn');
 
 		/**
 		* Button Listeners
@@ -46,15 +53,11 @@ module.exports = class Game {
 			self.updateUI();
 		});
 
-		// Create upgrade button events
-		for (let i = 0; i < this.buyUpgradeBtn.length; i++) {
-			this.buyUpgradeBtn[i].addEventListener('click', function (e) {
-				const upgradeId = parseInt(this.getAttribute('data-upid'));
-				if (self.buyUpgrade(upgradeId)) {
-					this.parentNode.parentNode.parentNode.remove();
-				}
-			});
-		}
+		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
+		Setup.setupPropertyUi(this.properties, this.propertiesDiv);
+
+		this.bindButtons();
+
 
 	}
 
@@ -103,6 +106,15 @@ module.exports = class Game {
 	}
 
 	/**
+	 * Gets eligible properties
+	 */
+	getEligibleProperties() {
+		return this.properties.filter(function (property) {
+			return property.eligibility >= this.allTimeGold;
+		}.bind(this));
+	}
+
+	/**
 	* Buy upgrade
 	*
 	* upid {int} Id of the upgrade
@@ -124,7 +136,42 @@ module.exports = class Game {
 		this.updateUI();
 
 		return true;
+	}
 
+	/**
+	 * Buy property
+	 *
+	 * propid {int} Id of the property
+	 * return {bool} true if successfully bought
+	 */
+	buyProperty(propid) {
+		const property = this.properties.find(function (property) {
+			return property.id === propid;
+		});
+
+		if (this.gold < property.cost) {
+			return false;
+		}
+
+		this.gold -= property.cost;
+		this.workValue += property.workValue;
+		this.goldPerSecond += property.goldPerSecond;
+		property.count += 1;
+		this.updateUI();
+
+		return true;
+	}
+
+	/**
+	 * Binds buttons
+	 */
+	bindButtons() {
+		const self = this;
+		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
+      button.addEventListener('click', function () {
+        self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
+      });
+    });
 	}
 
 };

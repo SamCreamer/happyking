@@ -60,24 +60,46 @@
             <div role="tabpanel" class="tab-pane" id="workers">
             </div>
             <div role="tabpanel" class="tab-pane" id="upgrades">
-              <div class="row upgrade-row">
-                <div class="col-xs-12">
-                  <div class="panel panel-default">
-                    <div class="panel-body">
-                      Corn Grower - Add 2 gold to your work value
-                      <div class="pull-right">
-                        <button type="button" class="btn btn-default buy-upgrade-btn" data-upId="0">Buy</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
     </div>
+
+    <!-- Templates -->
+    <template id="upgrade_template">
+      <div class="row upgrade-row">
+        <div class="col-xs-12">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <span class="upgrade-name"></span> - <span class="upgrade-desc"></span>
+              <div class="pull-right">
+                <button type="button" class="btn btn-default buy-upgrade-btn">Buy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="property_template">
+      <div class="property-row">
+        <div class="panel panel-default">
+          <div class="panel-body row">
+              <div class="col-xs-3">
+                <span class="property-count"></span>
+              </div>
+              <div class="col-xs-9">
+              <span class="property-name"></span> - <span class="property-desc"></span>
+              <div class="pull-right">
+                <button type="button" class="btn btn-default buy-property-btn">Buy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
 
     <!-- VENDORS -->
     <script src="http://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>

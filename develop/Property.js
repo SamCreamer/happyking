@@ -8,7 +8,7 @@ module.exports = class Property {
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
   */
-  constructor(id, name, cost, goldPerSecond, workValue, description, eligibility) {
+  constructor(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility) {
     this.id = id;
     this.name = name;
     this.cost = cost;
@@ -20,7 +20,7 @@ module.exports = class Property {
   }
 
   /**
-   * Update the cost of this property 
+   * Update the cost of this property
    */
   updateCost() {
     const newCost = parseInt(this.cost * this.costMultiplier);

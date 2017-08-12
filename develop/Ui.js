@@ -11,7 +11,6 @@ module.exports = class UI {
   * Updates the property count in the UI
   */
   static updatePropertyCountUI(property) {
-    console.log(property);
     const el = document.querySelector('[data-propid-container="' + property.id + '"]').querySelector('.property-count');
     el.innerHTML = property.count;
   }

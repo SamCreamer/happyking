@@ -167,6 +167,7 @@ module.exports = class Game {
 		this.goldPerSecond += property.goldPerSecond;
 		property.count += 1;
 
+		property.updateCost();
 		UI.updatePropertyCostUI(property);
 		UI.updatePropertyCountUI(property);
 		this.updateUI();

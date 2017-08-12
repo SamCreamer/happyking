@@ -32,9 +32,9 @@ module.exports = class Property {
   updateCost() {
     const newCost = parseInt(this.cost * this.costMultiplier);
     if (newCost === this.cost) {
-      return this.cost + 1;
+      this.cost++;
     } else {
-      return newCost;
+      this.cost = newCost;
     }
   }
 

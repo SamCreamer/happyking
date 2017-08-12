@@ -168,6 +168,7 @@ module.exports = class Game {
 		this.goldPerSecond += property.goldPerSecond;
 		property.count += 1;
 
+		property.updateCost();
 		UI.updatePropertyCostUI(property);
 		UI.updatePropertyCountUI(property);
 		this.updateUI();
@@ -235,9 +236,9 @@ module.exports = class Property {
   updateCost() {
     const newCost = parseInt(this.cost * this.costMultiplier);
     if (newCost === this.cost) {
-      return this.cost + 1;
+      this.cost++;
     } else {
-      return newCost;
+      this.cost = newCost;
     }
   }
 
@@ -325,7 +326,6 @@ module.exports = class UI {
   * Updates the property count in the UI
   */
   static updatePropertyCountUI(property) {
-    console.log(property);
     const el = document.querySelector('[data-propid-container="' + property.id + '"]').querySelector('.property-count');
     el.innerHTML = property.count;
   }

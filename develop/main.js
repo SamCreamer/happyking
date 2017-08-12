@@ -1,3 +1,8 @@
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const Game = require('./Game');
 
 const game = new Game();

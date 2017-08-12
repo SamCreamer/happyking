@@ -1,3 +1,8 @@
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const Upgrade = require('./Upgrade');
 
 module.exports = [

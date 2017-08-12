@@ -1,3 +1,8 @@
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 module.exports = class Upgrade {
   /**
   * Id {int}

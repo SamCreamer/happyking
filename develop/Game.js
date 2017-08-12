@@ -1,7 +1,13 @@
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const UpgradeList = require('./UpgradeList');
 const WorkerList = require('./WorkerList');
 const PropertyList = require('./PropertyList');
 const Setup = require('./Setup');
+const UI = require('./Ui');
 const Utils = require('./Utils');
 
 /**
@@ -40,6 +46,8 @@ module.exports = class Game {
 		*/
 		this.goldEl = document.getElementById('gold');
 		this.mainBtn = document.getElementById('main_click_btn');
+		this.workValueEl = document.getElementById('work_value');
+		this.gpsValueEl = document.getElementById('gps_value');
 		this.upgradesDiv = document.getElementById('upgrades');
 		this.propertiesDiv = document.getElementById('properties');
 
@@ -57,7 +65,6 @@ module.exports = class Game {
 		Setup.setupPropertyUi(this.properties, this.propertiesDiv);
 
 		this.bindButtons();
-
 
 	}
 
@@ -77,6 +84,8 @@ module.exports = class Game {
 	*/
 	updateUI() {
 		this.goldEl.innerHTML = this.gold;
+		this.workValueEl.innerHTML = this.workValue;
+		this.gpsValueEl.innerHTML = this.goldPerSecond;
 	}
 
 	/**
@@ -106,8 +115,8 @@ module.exports = class Game {
 	}
 
 	/**
-	 * Gets eligible properties
-	 */
+	* Gets eligible properties
+	*/
 	getEligibleProperties() {
 		return this.properties.filter(function (property) {
 			return property.eligibility >= this.allTimeGold;
@@ -139,11 +148,11 @@ module.exports = class Game {
 	}
 
 	/**
-	 * Buy property
-	 *
-	 * propid {int} Id of the property
-	 * return {bool} true if successfully bought
-	 */
+	* Buy property
+	*
+	* propid {int} Id of the property
+	* return {bool} true if successfully bought
+	*/
 	buyProperty(propid) {
 		const property = this.properties.find(function (property) {
 			return property.id === propid;
@@ -157,21 +166,35 @@ module.exports = class Game {
 		this.workValue += property.workValue;
 		this.goldPerSecond += property.goldPerSecond;
 		property.count += 1;
+
+		UI.updatePropertyCostUI(property);
+		UI.updatePropertyCountUI(property);
 		this.updateUI();
 
 		return true;
 	}
 
 	/**
-	 * Binds buttons
-	 */
+	* Binds buttons
+	*/
 	bindButtons() {
 		const self = this;
+		/**
+		* Buy upgrades
+		*/
 		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
-      button.addEventListener('click', function () {
-        self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
-      });
-    });
+			button.addEventListener('click', function () {
+				self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
+			});
+		});
+		/**
+		* Buy properties
+		*/
+		document.querySelectorAll('.buy-property-btn').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.buyProperty(parseInt(this.getAttribute('data-propid')));
+			});
+		});
 	}
 
 };

@@ -1,3 +1,8 @@
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const Worker = require('./Worker');
 
 module.exports = [

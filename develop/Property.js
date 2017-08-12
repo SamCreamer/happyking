@@ -1,3 +1,8 @@
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 module.exports = class Property {
   /**
   * Id {int}
@@ -7,8 +12,9 @@ module.exports = class Property {
   * goldPerSecond {int}
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
+  * count {int} How many of these are owned (maybe not the best structure for this type of variable)
   */
-  constructor(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility) {
+  constructor(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility, count) {
     this.id = id;
     this.name = name;
     this.cost = cost;
@@ -17,6 +23,7 @@ module.exports = class Property {
     this.workValue = workValue;
     this.description = description;
     this.eligibility = eligibility;
+    this.count = count;
   }
 
   /**

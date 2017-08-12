@@ -1,8 +1,14 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const UpgradeList = require('./UpgradeList');
 const WorkerList = require('./WorkerList');
 const PropertyList = require('./PropertyList');
 const Setup = require('./Setup');
+const UI = require('./Ui');
 const Utils = require('./Utils');
 
 /**
@@ -41,6 +47,8 @@ module.exports = class Game {
 		*/
 		this.goldEl = document.getElementById('gold');
 		this.mainBtn = document.getElementById('main_click_btn');
+		this.workValueEl = document.getElementById('work_value');
+		this.gpsValueEl = document.getElementById('gps_value');
 		this.upgradesDiv = document.getElementById('upgrades');
 		this.propertiesDiv = document.getElementById('properties');
 
@@ -58,7 +66,6 @@ module.exports = class Game {
 		Setup.setupPropertyUi(this.properties, this.propertiesDiv);
 
 		this.bindButtons();
-
 
 	}
 
@@ -78,6 +85,8 @@ module.exports = class Game {
 	*/
 	updateUI() {
 		this.goldEl.innerHTML = this.gold;
+		this.workValueEl.innerHTML = this.workValue;
+		this.gpsValueEl.innerHTML = this.goldPerSecond;
 	}
 
 	/**
@@ -107,8 +116,8 @@ module.exports = class Game {
 	}
 
 	/**
-	 * Gets eligible properties
-	 */
+	* Gets eligible properties
+	*/
 	getEligibleProperties() {
 		return this.properties.filter(function (property) {
 			return property.eligibility >= this.allTimeGold;
@@ -140,11 +149,11 @@ module.exports = class Game {
 	}
 
 	/**
-	 * Buy property
-	 *
-	 * propid {int} Id of the property
-	 * return {bool} true if successfully bought
-	 */
+	* Buy property
+	*
+	* propid {int} Id of the property
+	* return {bool} true if successfully bought
+	*/
 	buyProperty(propid) {
 		const property = this.properties.find(function (property) {
 			return property.id === propid;
@@ -158,26 +167,45 @@ module.exports = class Game {
 		this.workValue += property.workValue;
 		this.goldPerSecond += property.goldPerSecond;
 		property.count += 1;
+
+		UI.updatePropertyCostUI(property);
+		UI.updatePropertyCountUI(property);
 		this.updateUI();
 
 		return true;
 	}
 
 	/**
-	 * Binds buttons
-	 */
+	* Binds buttons
+	*/
 	bindButtons() {
 		const self = this;
+		/**
+		* Buy upgrades
+		*/
 		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
-      button.addEventListener('click', function () {
-        self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
-      });
-    });
+			button.addEventListener('click', function () {
+				self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
+			});
+		});
+		/**
+		* Buy properties
+		*/
+		document.querySelectorAll('.buy-property-btn').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.buyProperty(parseInt(this.getAttribute('data-propid')));
+			});
+		});
 	}
 
 };
 
-},{"./PropertyList":3,"./Setup":4,"./UpgradeList":6,"./Utils":7,"./WorkerList":9}],2:[function(require,module,exports){
+},{"./PropertyList":3,"./Setup":4,"./Ui":5,"./UpgradeList":7,"./Utils":8,"./WorkerList":10}],2:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 module.exports = class Property {
   /**
   * Id {int}
@@ -187,8 +215,9 @@ module.exports = class Property {
   * goldPerSecond {int}
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
+  * count {int} How many of these are owned (maybe not the best structure for this type of variable)
   */
-  constructor(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility) {
+  constructor(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility, count) {
     this.id = id;
     this.name = name;
     this.cost = cost;
@@ -197,6 +226,7 @@ module.exports = class Property {
     this.workValue = workValue;
     this.description = description;
     this.eligibility = eligibility;
+    this.count = count;
   }
 
   /**
@@ -214,13 +244,26 @@ module.exports = class Property {
 };
 
 },{}],3:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const Property = require('./Property');
 
 module.exports = [
-  new Property(0, 'Farm', 10, 1.05, 0, 'Buy more farms to harvest more crops', 0)
+  //new Property(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility, count)
+  new Property(0, 'Farm', 10, 1.05, 0, 1,'Buy more farms to harvest more crops', 0, 1)
 ];
 
 },{"./Property":2}],4:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
+const UI = require('./Ui');
+
 module.exports = class Setup {
 
   /**
@@ -231,6 +274,8 @@ module.exports = class Setup {
     for (let i = 0; i < upgrades.length; i++) {
       const template = document.getElementById('upgrade_template').content;
 
+      template.querySelector('.upgrade-row').setAttribute('data-upid-container', upgrades[i].id);
+
       template.querySelector('.upgrade-name').innerHTML = upgrades[i].name;
       template.querySelector('.upgrade-desc').innerHTML = upgrades[i].description;
       template.querySelector('.buy-upgrade-btn').setAttribute('data-upid', upgrades[i].id);
@@ -239,7 +284,7 @@ module.exports = class Setup {
       upgradesDiv.appendChild(clone);
     }
 
-      }
+  }
 
   /**
    * Setup property list ui
@@ -248,20 +293,60 @@ module.exports = class Setup {
     for (let i = 0; i < properties.length; i++) {
       const template = document.getElementById('property_template').content;
 
+      template.querySelector('.property-row').setAttribute('data-propid-container', properties[i].id);
+
       template.querySelector('.property-name').innerHTML = properties[i].name;
       template.querySelector('.property-desc').innerHTML = properties[i].description;
 
-      const btn = template.querySelector('.buy-property-btn');
-      btn.setAttribute('data-propid', properties[i].id);
+      template.querySelector('.buy-property-btn').setAttribute('data-propid', properties[i].id);
 
       const clone = document.importNode(template, true);
       propertyDiv.appendChild(clone);
+
+      UI.updatePropertyCostUI(properties[i]);
+      UI.updatePropertyCountUI(properties[i]);
+
     }
   }
 
 }
 
-},{}],5:[function(require,module,exports){
+},{"./Ui":5}],5:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
+/**
+* This module is for strictly UI related things
+*/
+module.exports = class UI {
+  /**
+  * Updates the property count in the UI
+  */
+  static updatePropertyCountUI(property) {
+    console.log(property);
+    const el = document.querySelector('[data-propid-container="' + property.id + '"]').querySelector('.property-count');
+    el.innerHTML = property.count;
+  }
+
+
+  /**
+  * Update property cost in the UI
+  */
+  static updatePropertyCostUI(property) {
+    const el = document.querySelector('[data-propid-container="' + property.id + '"]').querySelector('.property-cost');
+    el.innerHTML = property.cost;
+  }
+
+}
+
+},{}],6:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 module.exports = class Upgrade {
   /**
   * Id {int}
@@ -283,19 +368,34 @@ module.exports = class Upgrade {
   }
 };
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const Upgrade = require('./Upgrade');
 
 module.exports = [
   new Upgrade(0, 'corn', 10, 0, 2, 'Learn how to farm corn', 0)
 ];
 
-},{"./Upgrade":5}],7:[function(require,module,exports){
+},{"./Upgrade":6}],8:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 module.export = class Utils {
 
 };
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 module.exports = class Worker {
   /**
   * Id {int}
@@ -316,14 +416,24 @@ module.exports = class Worker {
   }
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const Worker = require('./Worker');
 
 module.exports = [
   new Worker(0, 'Farmer', 0, 2, 'Help you farm', 0)
 ];
 
-},{"./Worker":8}],10:[function(require,module,exports){
+},{"./Worker":9}],11:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
 const Game = require('./Game');
 
 const game = new Game();
@@ -332,4 +442,4 @@ window.setInterval(function () {
   game.gameLoop();
 }, 1000);
 
-},{"./Game":1}]},{},[10]);
+},{"./Game":1}]},{},[11]);

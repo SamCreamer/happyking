@@ -49,10 +49,9 @@ module.exports = class Game {
 		this.mainBtn = document.getElementById('main_click_btn');
 		this.workValueEl = document.getElementById('work_value');
 		this.gpsValueEl = document.getElementById('gps_value');
-		this.upgradesDiv = document.getElementById('upgrades');
 		this.propertiesDiv = document.getElementById('properties');
-
-		// this.buyUpgradeBtn = document.getElementsByClassName('buy-upgrade-btn');
+		this.workersDiv = document.getElementById('workers');
+		this.upgradesDiv = document.getElementById('upgrades');
 
 		/**
 		* Button Listeners
@@ -62,8 +61,12 @@ module.exports = class Game {
 			self.updateUI();
 		});
 
-		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
+		/**
+		 * UI setup
+		 */
 		Setup.setupPropertyUi(this.properties, this.propertiesDiv);
+		Setup.setupWorkerUi(this.workers, this.workersDiv);
+		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
 
 		this.bindButtons();
 
@@ -84,9 +87,9 @@ module.exports = class Game {
 	* Updates the UI
 	*/
 	updateUI() {
-		this.goldEl.innerHTML = this.gold;
+		this.goldEl.innerHTML = Math.round(this.gold);
 		this.workValueEl.innerHTML = this.workValue;
-		this.gpsValueEl.innerHTML = this.goldPerSecond;
+		this.gpsValueEl.innerHTML = Utils.roundNumber(this.goldPerSecond, 2);
 	}
 
 	/**
@@ -125,6 +128,80 @@ module.exports = class Game {
 	}
 
 	/**
+	* Buy property
+	*
+	* propid {int} Id of the property
+	* return {bool} true if successfully bought
+	*/
+	buyProperty(propid) {
+		const property = this.properties.find(function (property) {
+			return property.id === propid;
+		});
+
+		if (this.gold < property.cost) {
+			return false;
+		}
+
+		this.gold -= property.cost;
+		this.workValue += property.workValue;
+		property.count += 1;
+
+		/**
+		 * Make sure workers work on these properties
+		*/
+		const relevantWorkers = this.workers.filter(function (worker) {
+			return worker.propId === property.id && worker.hired === true;
+		});
+
+		/**
+		 * TODO: Update this when workers have speed
+		 */
+		for (let i = 0; i < relevantWorkers.length; i++) {
+			this.goldPerSecond += property.workValue / relevantWorkers[i].secondsToWork;
+		}
+
+		property.updateCost();
+		UI.updatePropertyCostUI(property);
+		UI.updatePropertyCountUI(property);
+		this.updateUI();
+
+		return true
+	}
+
+	/**
+	* Buy worker
+	*
+	* propid {int} Id of the worker
+	* return {bool} true if successfully bought
+	*/
+	buyWorker(workerid) {
+		const worker = this.workers.find(function (worker) {
+			return worker.id === workerid;
+		});
+
+		const correspondingProperty = this.properties[worker.propId];
+
+		/**
+		 * TODO: These two errors should be separated in the future for UI reasons
+		 */
+		if (this.gold < worker.cost || correspondingProperty.count === 0 || worker.hired === true) {
+			return false;
+		}
+
+		this.gold -= worker.cost;
+
+		/**
+		 * TODO: Change this maybe? Maybe not Math.ceil?
+		 */
+		this.goldPerSecond += (correspondingProperty.count * correspondingProperty.workValue) / worker.secondsToWork;
+		worker.hired = true;
+
+		this.updateUI();
+
+		return true;
+	}
+
+	/**
 	* Buy upgrade
 	*
 	* upid {int} Id of the upgrade
@@ -148,47 +225,14 @@ module.exports = class Game {
 		return true;
 	}
 
-	/**
-	* Buy property
-	*
-	* propid {int} Id of the property
-	* return {bool} true if successfully bought
-	*/
-	buyProperty(propid) {
-		const property = this.properties.find(function (property) {
-			return property.id === propid;
-		});
 
-		if (this.gold < property.cost) {
-			return false;
-		}
-
-		this.gold -= property.cost;
-		this.workValue += property.workValue;
-		this.goldPerSecond += property.goldPerSecond;
-		property.count += 1;
-
-		property.updateCost();
-		UI.updatePropertyCostUI(property);
-		UI.updatePropertyCountUI(property);
-		this.updateUI();
-
-		return true;
-	}
 
 	/**
 	* Binds buttons
 	*/
 	bindButtons() {
 		const self = this;
-		/**
-		* Buy upgrades
-		*/
-		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
-			button.addEventListener('click', function () {
-				self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
-			});
-		});
+
 		/**
 		* Buy properties
 		*/
@@ -197,6 +241,25 @@ module.exports = class Game {
 				self.buyProperty(parseInt(this.getAttribute('data-propid')));
 			});
 		});
+
+		/**
+		* Buy workers
+		*/
+		document.querySelectorAll('.buy-worker-btn').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.buyWorker(parseInt(this.getAttribute('data-workerid')));
+			});
+		});
+
+		/**
+		* Buy upgrades
+		*/
+		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
+			});
+		});
+
 	}
 
 };
@@ -213,17 +276,15 @@ module.exports = class Property {
   * Name {string}
   * Cost {int} How many gold does it cost
   * Cost Multiplier {float}
-  * goldPerSecond {int}
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
   * count {int} How many of these are owned (maybe not the best structure for this type of variable)
   */
-  constructor(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility, count) {
+  constructor(id, name, cost, costMultiplier, workValue, description, eligibility, count) {
     this.id = id;
     this.name = name;
     this.cost = cost;
     this.costMultiplier = costMultiplier;
-    this.goldPerSecond = goldPerSecond;
     this.workValue = workValue;
     this.description = description;
     this.eligibility = eligibility;
@@ -253,8 +314,10 @@ module.exports = class Property {
 const Property = require('./Property');
 
 module.exports = [
-  //new Property(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility, count)
-  new Property(0, 'Farm', 10, 1.05, 0, 1,'Buy more farms to harvest more crops', 0, 1)
+  //new Property(id, name, cost, costMultiplier, workValue, description, eligibility, count)
+  new Property(0, 'Farm', 10, 1.05, 1,'Buy more farms to harvest more crops', 0, 1),
+  new Property(1, 'General Store', 1000, 1.1, 20,'Buy a general store to earn some gold', 0, 0),
+  new Property(2, 'Sword Sharpening Store', 10000, 1.2, 100, 'Sharpen swords for other people in the kingdom!', 0, 0)
 ];
 
 },{"./Property":2}],4:[function(require,module,exports){
@@ -268,28 +331,8 @@ const UI = require('./Ui');
 module.exports = class Setup {
 
   /**
-   * Takes upgrade object array and makes the UI for them
-   */
-  static setupUpgradeUi(upgrades, upgradesDiv) {
-    // setup upgrade UI
-    for (let i = 0; i < upgrades.length; i++) {
-      const template = document.getElementById('upgrade_template').content;
-
-      template.querySelector('.upgrade-row').setAttribute('data-upid-container', upgrades[i].id);
-
-      template.querySelector('.upgrade-name').innerHTML = upgrades[i].name;
-      template.querySelector('.upgrade-desc').innerHTML = upgrades[i].description;
-      template.querySelector('.buy-upgrade-btn').setAttribute('data-upid', upgrades[i].id);
-
-      const clone = document.importNode(template, true);
-      upgradesDiv.appendChild(clone);
-    }
-
-  }
-
-  /**
-   * Setup property list ui
-   */
+  * Setup property list ui
+  */
   static setupPropertyUi(properties, propertyDiv) {
     for (let i = 0; i < properties.length; i++) {
       const template = document.getElementById('property_template').content;
@@ -310,6 +353,51 @@ module.exports = class Setup {
     }
   }
 
+
+  /**
+  * Setup worker list ui
+  */
+  static setupWorkerUi(workers, workerDiv) {
+    for (let i = 0; i < workers.length; i++) {
+      const template = document.getElementById('worker_template').content;
+
+      template.querySelector('.worker-row').setAttribute('data-workerid-container', workers[i].id);
+
+      template.querySelector('.worker-name').innerHTML = workers[i].name;
+      template.querySelector('.worker-desc').innerHTML = workers[i].description;
+      template.querySelector('.worker-cost').innerHTML = workers[i].cost;
+
+      template.querySelector('.buy-worker-btn').setAttribute('data-workerid', workers[i].id);
+
+      const clone = document.importNode(template, true);
+      workerDiv.appendChild(clone);
+
+    }
+  }
+
+  /**
+  * Takes upgrade object array and makes the UI for them
+  */
+  static setupUpgradeUi(upgrades, upgradesDiv) {
+    // setup upgrade UI
+    for (let i = 0; i < upgrades.length; i++) {
+      const template = document.getElementById('upgrade_template').content;
+
+      template.querySelector('.upgrade-row').setAttribute('data-upid-container', upgrades[i].id);
+
+      template.querySelector('.upgrade-name').innerHTML = upgrades[i].name;
+      template.querySelector('.upgrade-desc').innerHTML = upgrades[i].description;
+      template.querySelector('.upgrade-cost').innerHTML = upgrades[i].cost;
+
+      template.querySelector('.buy-upgrade-btn').setAttribute('data-upid', upgrades[i].id);
+
+      const clone = document.importNode(template, true);
+      upgradesDiv.appendChild(clone);
+    }
+
+  }
+
+
 }
 
 },{"./Ui":5}],5:[function(require,module,exports){
@@ -329,7 +417,6 @@ module.exports = class UI {
     const el = document.querySelector('[data-propid-container="' + property.id + '"]').querySelector('.property-count');
     el.innerHTML = property.count;
   }
-
 
   /**
   * Update property cost in the UI
@@ -386,8 +473,13 @@ module.exports = [
 * Author: Sam Creamer
 */
 
-module.export = class Utils {
-
+module.exports = class Utils {
+  /**
+   * Rounds number
+   */
+  static roundNumber(number, decimals) {
+    return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+  }
 };
 
 },{}],9:[function(require,module,exports){
@@ -399,19 +491,21 @@ module.export = class Utils {
 module.exports = class Worker {
   /**
   * Id {int}
+  * PropId {int} The corresponding property ID. Usually the same as id
   * Name {string}
-  * goldPerSecond {int}
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
+  * secondsToWork {int} how many seconds does it take for this worker to work
   * hired {bool} Is this worker hired?
   */
-  constructor(id, name, goldPerSecond, workValue, description, eligibility) {
+  constructor(id, propId, name, cost, description, eligibility, secondsToWork) {
     this.id = id;
+    this.propId = propId;
     this.name = name;
-    this.goldPerSecond = goldPerSecond;
-    this.workValue = workValue;
+    this.cost = cost;
     this.description = description;
     this.eligibility = eligibility;
+    this.secondsToWork = secondsToWork;
     this.hired = false;
   }
 };
@@ -425,7 +519,11 @@ module.exports = class Worker {
 const Worker = require('./Worker');
 
 module.exports = [
-  new Worker(0, 'Farmer', 0, 2, 'Help you farm', 0)
+  //new Worker(id, propId, name, cost, description, eligibility)
+  new Worker(0, 0, 'Noob Farmer', 10, 'Will work your farms once every 5 seconds', 0, 5),
+  new Worker(1, 1, 'Young Store Clerk', 10, 'Will work the stores once every 8 seconds', 0, 8),
+  new Worker(2, 2, 'Apprentice Sword Sharpener', 10, 'Runs the sword sharpening shops, once per 8 seconds', 0, 8),
+  new Worker(3, 0, 'Student Farmer', 10, 'A student, studying farms. Works once per 2 seconds', 0, 2)
 ];
 
 },{"./Worker":9}],11:[function(require,module,exports){

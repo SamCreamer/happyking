@@ -48,10 +48,9 @@ module.exports = class Game {
 		this.mainBtn = document.getElementById('main_click_btn');
 		this.workValueEl = document.getElementById('work_value');
 		this.gpsValueEl = document.getElementById('gps_value');
-		this.upgradesDiv = document.getElementById('upgrades');
 		this.propertiesDiv = document.getElementById('properties');
-
-		// this.buyUpgradeBtn = document.getElementsByClassName('buy-upgrade-btn');
+		this.workersDiv = document.getElementById('workers');
+		this.upgradesDiv = document.getElementById('upgrades');
 
 		/**
 		* Button Listeners
@@ -61,8 +60,12 @@ module.exports = class Game {
 			self.updateUI();
 		});
 
-		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
+		/**
+		 * UI setup
+		 */
 		Setup.setupPropertyUi(this.properties, this.propertiesDiv);
+		Setup.setupWorkerUi(this.workers, this.workersDiv);
+		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
 
 		this.bindButtons();
 
@@ -83,9 +86,9 @@ module.exports = class Game {
 	* Updates the UI
 	*/
 	updateUI() {
-		this.goldEl.innerHTML = this.gold;
+		this.goldEl.innerHTML = Math.round(this.gold);
 		this.workValueEl.innerHTML = this.workValue;
-		this.gpsValueEl.innerHTML = this.goldPerSecond;
+		this.gpsValueEl.innerHTML = Utils.roundNumber(this.goldPerSecond, 2);
 	}
 
 	/**
@@ -124,6 +127,80 @@ module.exports = class Game {
 	}
 
 	/**
+	* Buy property
+	*
+	* propid {int} Id of the property
+	* return {bool} true if successfully bought
+	*/
+	buyProperty(propid) {
+		const property = this.properties.find(function (property) {
+			return property.id === propid;
+		});
+
+		if (this.gold < property.cost) {
+			return false;
+		}
+
+		this.gold -= property.cost;
+		this.workValue += property.workValue;
+		property.count += 1;
+
+		/**
+		 * Make sure workers work on these properties
+		*/
+		const relevantWorkers = this.workers.filter(function (worker) {
+			return worker.propId === property.id && worker.hired === true;
+		});
+
+		/**
+		 * TODO: Update this when workers have speed
+		 */
+		for (let i = 0; i < relevantWorkers.length; i++) {
+			this.goldPerSecond += property.workValue / relevantWorkers[i].secondsToWork;
+		}
+
+		property.updateCost();
+		UI.updatePropertyCostUI(property);
+		UI.updatePropertyCountUI(property);
+		this.updateUI();
+
+		return true
+	}
+
+	/**
+	* Buy worker
+	*
+	* propid {int} Id of the worker
+	* return {bool} true if successfully bought
+	*/
+	buyWorker(workerid) {
+		const worker = this.workers.find(function (worker) {
+			return worker.id === workerid;
+		});
+
+		const correspondingProperty = this.properties[worker.propId];
+
+		/**
+		 * TODO: These two errors should be separated in the future for UI reasons
+		 */
+		if (this.gold < worker.cost || correspondingProperty.count === 0 || worker.hired === true) {
+			return false;
+		}
+
+		this.gold -= worker.cost;
+
+		/**
+		 * TODO: Change this maybe? Maybe not Math.ceil?
+		 */
+		this.goldPerSecond += (correspondingProperty.count * correspondingProperty.workValue) / worker.secondsToWork;
+		worker.hired = true;
+
+		this.updateUI();
+
+		return true;
+	}
+
+	/**
 	* Buy upgrade
 	*
 	* upid {int} Id of the upgrade
@@ -147,47 +224,14 @@ module.exports = class Game {
 		return true;
 	}
 
-	/**
-	* Buy property
-	*
-	* propid {int} Id of the property
-	* return {bool} true if successfully bought
-	*/
-	buyProperty(propid) {
-		const property = this.properties.find(function (property) {
-			return property.id === propid;
-		});
 
-		if (this.gold < property.cost) {
-			return false;
-		}
-
-		this.gold -= property.cost;
-		this.workValue += property.workValue;
-		this.goldPerSecond += property.goldPerSecond;
-		property.count += 1;
-
-		property.updateCost();
-		UI.updatePropertyCostUI(property);
-		UI.updatePropertyCountUI(property);
-		this.updateUI();
-
-		return true;
-	}
 
 	/**
 	* Binds buttons
 	*/
 	bindButtons() {
 		const self = this;
-		/**
-		* Buy upgrades
-		*/
-		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
-			button.addEventListener('click', function () {
-				self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
-			});
-		});
+
 		/**
 		* Buy properties
 		*/
@@ -196,6 +240,25 @@ module.exports = class Game {
 				self.buyProperty(parseInt(this.getAttribute('data-propid')));
 			});
 		});
+
+		/**
+		* Buy workers
+		*/
+		document.querySelectorAll('.buy-worker-btn').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.buyWorker(parseInt(this.getAttribute('data-workerid')));
+			});
+		});
+
+		/**
+		* Buy upgrades
+		*/
+		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
+			});
+		});
+
 	}
 
 };

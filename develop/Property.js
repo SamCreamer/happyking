@@ -9,17 +9,15 @@ module.exports = class Property {
   * Name {string}
   * Cost {int} How many gold does it cost
   * Cost Multiplier {float}
-  * goldPerSecond {int}
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
   * count {int} How many of these are owned (maybe not the best structure for this type of variable)
   */
-  constructor(id, name, cost, costMultiplier, goldPerSecond, workValue, description, eligibility, count) {
+  constructor(id, name, cost, costMultiplier, workValue, description, eligibility, count) {
     this.id = id;
     this.name = name;
     this.cost = cost;
     this.costMultiplier = costMultiplier;
-    this.goldPerSecond = goldPerSecond;
     this.workValue = workValue;
     this.description = description;
     this.eligibility = eligibility;

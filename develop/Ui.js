@@ -15,7 +15,6 @@ module.exports = class UI {
     el.innerHTML = property.count;
   }
 
-
   /**
   * Update property cost in the UI
   */

@@ -3,6 +3,11 @@
 * Author: Sam Creamer
 */
 
-module.export = class Utils {
-
+module.exports = class Utils {
+  /**
+   * Rounds number
+   */
+  static roundNumber(number, decimals) {
+    return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+  }
 };

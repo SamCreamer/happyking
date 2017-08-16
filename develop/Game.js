@@ -22,7 +22,7 @@ module.exports = class Game {
 		/**
 		* Game Variables
 		*/
-		this.gold = 9999999;
+		this.gold = 0;
 		this.allTimeGold = 0;
 		this.workValue = 1;
 		this.multiplier = 1;
@@ -99,12 +99,13 @@ module.exports = class Game {
 		this.allTimeGold += this.workValue;
 	}
 
+
 	/**
-	* Gets eligible upgrades and returns them
+	* Gets eligible properties
 	*/
-	getEligibleUpgrades() {
-		return this.upgrades.filter(function (upgrade) {
-			return upgrade.eligibility >= this.allTimeGold && upgrade.owned === false;
+	getEligibleProperties() {
+		return this.properties.filter(function (property) {
+			return property.eligibility >= this.allTimeGold;
 		}.bind(this));
 	}
 
@@ -118,11 +119,11 @@ module.exports = class Game {
 	}
 
 	/**
-	* Gets eligible properties
+	* Gets eligible upgrades and returns them
 	*/
-	getEligibleProperties() {
-		return this.properties.filter(function (property) {
-			return property.eligibility >= this.allTimeGold;
+	getEligibleUpgrades() {
+		return this.upgrades.filter(function (upgrade) {
+			return upgrade.eligibility >= this.allTimeGold && upgrade.owned === false;
 		}.bind(this));
 	}
 
@@ -262,14 +263,19 @@ module.exports = class Game {
 	 * Updates work value
 	 */
 	updateWorkValue() {
-		let tmpWorkValue = 0;
-		const ownedProperties = this.properties.filter(function (property) {
-			return property.count > 0;
-		});
+		const ownedProperties = this.getOwnedProperties();
+
+		let tmpGameWorkValue = 0;
+		let tmpPropertyWorkValue;
 
 		for (let i = 0; i < ownedProperties.length; i++) {
-			tmpWorkValue += ownedProperties[i].count * ownedProperties[i].workValue;
+			tmpPropertyWorkValue = 0;
+			tmpPropertyWorkValue += ownedProperties[i].count * ownedProperties[i].workValue;
+			tmpGameWorkValue += tmpPropertyWorkValue;
+			ownedProperties[i].workValue = tmpPropertyWorkValue;
 		}
+
+		this.workValue = tmpGameWorkValue;
 
 	}
 
@@ -278,18 +284,15 @@ module.exports = class Game {
 	 */
 	updateGoldPerSecond() {
 		let tmpGps = 0;
-		const ownedProperties = this.properties.filter(function (property) {
-			return property.count > 0;
-		});
+
+		const ownedProperties = this.getOwnedProperties();
 
 		let workers;
 
 		for (let i = 0; i < ownedProperties.length; i++) {
 			workers = this.workers.filter(function (worker) {
-				return worker.propId === ownedProperties[i].id;
+				return worker.propId === ownedProperties[i].id && worker.hired === true;
 			});
-
-			console.log(workers);
 
 			for (let j = 0; j < workers.length; j++) {
 				tmpGps += (ownedProperties[i].count * ownedProperties[i].workValue) / workers[j].secondsToWork;
@@ -297,11 +300,20 @@ module.exports = class Game {
 
 		}
 
-		console.log(tmpGps);
 		this.goldPerSecond = tmpGps;
 
 	}
 
+	/**
+	 * Returns owned properties
+	 * TODO: maybe a better place for this?
+	 */
+	getOwnedProperties() {
+		const ownedProperties = this.properties.filter(function (property) {
+			return property.count > 0;
+		});
+		return ownedProperties;
+	}
 
 
 	/**

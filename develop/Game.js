@@ -226,7 +226,7 @@ module.exports = class Game {
 		/**
 		 * Requirements for buying
 		 */
-		if (this.gold < upgrade.cost || property.length === 0) {
+		if (this.gold < upgrade.cost || property.length === 0 || upgrade.owned === true) {
 			return false;
 		}
 
@@ -245,26 +245,61 @@ module.exports = class Game {
 		upgrade.owned = true;
 
 		/**
-		 * Adjust affected properties and workers
+		 * Update the property
 		 */
-		for (let i = 0; i < workers.length; i++) {
-
-			const worker = workers[i];
-
-			/**
-			 * Increase by work value per property
-			 */
-			this.goldPerSecond += (property.count * upgrade.workValue) / worker.secondsToWork;
-			/**
-			 * Increase by work value factor
-			 */
-			this.goldPerSecond += (property.count * property.workValue * upgrade.workValueIncrease) / worker.secondsToWork;
-		}
+		property.workValue += upgrade.workValue;
+		property.workValue *= upgrade.workValueMultiplier;
 
 		upgrade.owned = true;
+		this.updateWorkValue();
+		this.updateGoldPerSecond();
 		this.updateUI();
 
 		return true;
+	}
+
+	/**
+	 * Updates work value
+	 */
+	updateWorkValue() {
+		let tmpWorkValue = 0;
+		const ownedProperties = this.properties.filter(function (property) {
+			return property.count > 0;
+		});
+
+		for (let i = 0; i < ownedProperties.length; i++) {
+			tmpWorkValue += ownedProperties[i].count * ownedProperties[i].workValue;
+		}
+
+	}
+
+	/**
+	 * Updates the gold per second
+	 */
+	updateGoldPerSecond() {
+		let tmpGps = 0;
+		const ownedProperties = this.properties.filter(function (property) {
+			return property.count > 0;
+		});
+
+		let workers;
+
+		for (let i = 0; i < ownedProperties.length; i++) {
+			workers = this.workers.filter(function (worker) {
+				return worker.propId === ownedProperties[i].id;
+			});
+
+			console.log(workers);
+
+			for (let j = 0; j < workers.length; j++) {
+				tmpGps += (ownedProperties[i].count * ownedProperties[i].workValue) / workers[j].secondsToWork;
+			}
+
+		}
+
+		console.log(tmpGps);
+		this.goldPerSecond = tmpGps;
+
 	}
 
 

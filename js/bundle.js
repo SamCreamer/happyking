@@ -23,7 +23,7 @@ module.exports = class Game {
 		/**
 		* Game Variables
 		*/
-		this.gold = 0;
+		this.gold = 9999999;
 		this.allTimeGold = 0;
 		this.workValue = 1;
 		this.multiplier = 1;
@@ -142,6 +142,9 @@ module.exports = class Game {
 			return false;
 		}
 
+		/**
+		 * Buy property
+		 */
 		this.gold -= property.cost;
 		this.workValue += property.workValue;
 		property.count += 1;
@@ -179,7 +182,9 @@ module.exports = class Game {
 			return worker.id === workerid;
 		});
 
-		const correspondingProperty = this.properties[worker.propId];
+		const correspondingProperty = this.properties.find(function (property) {
+			return property.id === worker.propId;
+		});
 
 		/**
 		 * TODO: These two errors should be separated in the future for UI reasons
@@ -212,13 +217,51 @@ module.exports = class Game {
 			return upgrade.id === upid;
 		});
 
-		if (this.gold < upgrade.cost) {
+		/**
+		 * Corresponding property
+		 */
+		const property = this.properties.find(function (property) {
+			return property.id === upgrade.propId && property.count > 0;
+		});
+
+		/**
+		 * Requirements for buying
+		 */
+		if (this.gold < upgrade.cost || property.length === 0) {
 			return false;
 		}
 
+		/**
+		 * Corresponding workers
+		 * The reason we only assign this here is because we first check above if we are even eligible to purchase thiis
+		 */
+		const workers = this.workers.filter(function (worker) {
+			return worker.propId === property.id;
+		});
+
+		/**
+		 * Buy it
+		 */
 		this.gold -= upgrade.cost;
-		this.workValue += upgrade.workValue;
-		this.goldPerSecond += upgrade.goldPerSecond;
+		upgrade.owned = true;
+
+		/**
+		 * Adjust affected properties and workers
+		 */
+		for (let i = 0; i < workers.length; i++) {
+
+			const worker = workers[i];
+
+			/**
+			 * Increase by work value per property
+			 */
+			this.goldPerSecond += (property.count * upgrade.workValue) / worker.secondsToWork;
+			/**
+			 * Increase by work value factor
+			 */
+			this.goldPerSecond += (property.count * property.workValue * upgrade.workValueIncrease) / worker.secondsToWork;
+		}
+
 		upgrade.owned = true;
 		this.updateUI();
 
@@ -289,6 +332,7 @@ module.exports = class Property {
     this.description = description;
     this.eligibility = eligibility;
     this.count = count;
+    this.appliedUpgrades = [];
   }
 
   /**
@@ -443,12 +487,13 @@ module.exports = class Upgrade {
   * description {string}
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
   */
-  constructor(id, name, cost, goldPerSecond, workValue, description, eligibility) {
+  constructor(id, propId, name, cost, workValue, workValueIncrease, description, eligibility) {
     this.id = id;
+    this.propId = propId;
     this.name = name;
     this.cost = cost;
-    this.goldPerSecond = goldPerSecond;
     this.workValue = workValue;
+    this.workValueIncrease = workValueIncrease;
     this.description = description;
     this.eligibility = eligibility;
     this.owned = false;
@@ -464,7 +509,8 @@ module.exports = class Upgrade {
 const Upgrade = require('./Upgrade');
 
 module.exports = [
-  new Upgrade(0, 'corn', 10, 0, 2, 'Learn how to farm corn', 0)
+  // new Upgrade(id, propId, name, cost, workValue, workValueIncrease, description, eligibility)
+  new Upgrade(0, 0,'corn', 10, 0, 0.5, 'Learn how to farm corn - add 50% to your farming output', 0)
 ];
 
 },{"./Upgrade":6}],8:[function(require,module,exports){

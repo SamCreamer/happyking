@@ -22,7 +22,7 @@ module.exports = class Game {
 		/**
 		* Game Variables
 		*/
-		this.gold = 0;
+		this.gold = 9999999;
 		this.allTimeGold = 0;
 		this.workValue = 1;
 		this.multiplier = 1;
@@ -141,6 +141,9 @@ module.exports = class Game {
 			return false;
 		}
 
+		/**
+		 * Buy property
+		 */
 		this.gold -= property.cost;
 		this.workValue += property.workValue;
 		property.count += 1;
@@ -178,7 +181,9 @@ module.exports = class Game {
 			return worker.id === workerid;
 		});
 
-		const correspondingProperty = this.properties[worker.propId];
+		const correspondingProperty = this.properties.find(function (property) {
+			return property.id === worker.propId;
+		});
 
 		/**
 		 * TODO: These two errors should be separated in the future for UI reasons
@@ -211,13 +216,51 @@ module.exports = class Game {
 			return upgrade.id === upid;
 		});
 
-		if (this.gold < upgrade.cost) {
+		/**
+		 * Corresponding property
+		 */
+		const property = this.properties.find(function (property) {
+			return property.id === upgrade.propId && property.count > 0;
+		});
+
+		/**
+		 * Requirements for buying
+		 */
+		if (this.gold < upgrade.cost || property.length === 0) {
 			return false;
 		}
 
+		/**
+		 * Corresponding workers
+		 * The reason we only assign this here is because we first check above if we are even eligible to purchase thiis
+		 */
+		const workers = this.workers.filter(function (worker) {
+			return worker.propId === property.id;
+		});
+
+		/**
+		 * Buy it
+		 */
 		this.gold -= upgrade.cost;
-		this.workValue += upgrade.workValue;
-		this.goldPerSecond += upgrade.goldPerSecond;
+		upgrade.owned = true;
+
+		/**
+		 * Adjust affected properties and workers
+		 */
+		for (let i = 0; i < workers.length; i++) {
+
+			const worker = workers[i];
+
+			/**
+			 * Increase by work value per property
+			 */
+			this.goldPerSecond += (property.count * upgrade.workValue) / worker.secondsToWork;
+			/**
+			 * Increase by work value factor
+			 */
+			this.goldPerSecond += (property.count * property.workValue * upgrade.workValueIncrease) / worker.secondsToWork;
+		}
+
 		upgrade.owned = true;
 		this.updateUI();
 

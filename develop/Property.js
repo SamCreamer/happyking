@@ -22,6 +22,7 @@ module.exports = class Property {
     this.description = description;
     this.eligibility = eligibility;
     this.count = count;
+    this.appliedUpgrades = [];
   }
 
   /**

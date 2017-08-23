@@ -177,7 +177,7 @@ module.exports = class Game {
 	* propid {int} Id of the worker
 	* return {bool} true if successfully bought
 	*/
-	buyWorker(workerid) {
+	buyWorker(workerid, button) {
 		const worker = this.workers.find(function (worker) {
 			return worker.id === workerid;
 		});
@@ -200,6 +200,11 @@ module.exports = class Game {
 		 */
 		this.goldPerSecond += (correspondingProperty.count * correspondingProperty.workValue) / worker.secondsToWork;
 		worker.hired = true;
+
+		/**
+		 * Disable button
+		 */
+		button.disabled = true;
 
 		this.updateUI();
 
@@ -336,7 +341,7 @@ module.exports = class Game {
 		*/
 		document.querySelectorAll('.buy-worker-btn').forEach(function (button) {
 			button.addEventListener('click', function () {
-				self.buyWorker(parseInt(this.getAttribute('data-workerid')));
+				self.buyWorker(parseInt(this.getAttribute('data-workerid')), this);
 			});
 		});
 

@@ -178,7 +178,7 @@ module.exports = class Game {
 	* propid {int} Id of the worker
 	* return {bool} true if successfully bought
 	*/
-	buyWorker(workerid) {
+	buyWorker(workerid, button) {
 		const worker = this.workers.find(function (worker) {
 			return worker.id === workerid;
 		});
@@ -201,6 +201,11 @@ module.exports = class Game {
 		 */
 		this.goldPerSecond += (correspondingProperty.count * correspondingProperty.workValue) / worker.secondsToWork;
 		worker.hired = true;
+
+		/**
+		 * Disable button
+		 */
+		button.disabled = true;
 
 		this.updateUI();
 
@@ -337,7 +342,7 @@ module.exports = class Game {
 		*/
 		document.querySelectorAll('.buy-worker-btn').forEach(function (button) {
 			button.addEventListener('click', function () {
-				self.buyWorker(parseInt(this.getAttribute('data-workerid')));
+				self.buyWorker(parseInt(this.getAttribute('data-workerid')), this);
 			});
 		});
 
@@ -405,9 +410,11 @@ const Property = require('./Property');
 
 module.exports = [
   //new Property(id, name, cost, costMultiplier, workValue, description, eligibility, count)
-  new Property(0, 'Farm', 10, 1.05, 1,'Buy more farms to harvest more crops', 0, 1),
+  new Property(0, 'Small Farm', 10, 1.05, 1,'Buy more farms to harvest more crops', 0, 1),
   new Property(1, 'General Store', 1000, 1.1, 20,'Buy a general store to earn some gold', 0, 0),
-  new Property(2, 'Sword Sharpening Store', 10000, 1.2, 100, 'Sharpen swords for other people in the kingdom!', 0, 0)
+  new Property(2, 'Sword Sharpening Store', 10000, 1.2, 100, 'Sharpen swords for other people in the kingdom!', 0, 0),
+  new Property(3, 'Small Inn', 120000, 1.2, 2500, 'Let guests spend the night in your comfortable Inn', 0, 0),
+  new Property(4, 'Brewery', 2000000, 1.2, 19000, 'Everyone loves beer! Brew it for them', 0, 0)
 ];
 
 },{"./Property":2}],4:[function(require,module,exports){
@@ -615,7 +622,9 @@ module.exports = [
   new Worker(0, 0, 'Noob Farmer', 10, 'Will work your farms once every 5 seconds', 0, 5),
   new Worker(1, 1, 'Young Store Clerk', 10, 'Will work the stores once every 8 seconds', 0, 8),
   new Worker(2, 2, 'Apprentice Sword Sharpener', 10, 'Runs the sword sharpening shops, once per 8 seconds', 0, 8),
-  new Worker(3, 0, 'Student Farmer', 10, 'A student, studying farms. Works once per 2 seconds', 0, 2)
+  new Worker(3, 0, 'Student Farmer', 10, 'A student, studying farms. Works once per 2 seconds', 0, 2),
+  new Worker(4, 3, 'Small Inn Clerk', 10, 'Will work the Small Inns once every 5 seconds', 0, 5),
+  new Worker(5, 4, 'Rookie Brew Master', 10, 'Will make some beer every 8 seconds', 0, 8)
 ];
 
 },{"./Worker":9}],11:[function(require,module,exports){

@@ -3,9 +3,14 @@
 * Author: Sam Creamer
 */
 
+/**
+ * Objects
+ */
 const UpgradeList = require('./UpgradeList');
 const WorkerList = require('./WorkerList');
 const PropertyList = require('./PropertyList');
+const AchievementList = require('./AchievementList');
+const AchievementChecker = require('./achievementChecker');
 const Setup = require('./Setup');
 const UI = require('./Ui');
 const Utils = require('./Utils');
@@ -35,11 +40,9 @@ module.exports = class Game {
 		* Global elements
 		*/
 		this.upgrades = UpgradeList;
-		this.eligibleUpgrades = this.getEligibleUpgrades();
 		this.workers = WorkerList;
-		this.eligibleWorkers = this.getEligibleWorkers();
 		this.properties = PropertyList;
-		this.eligibleProperties = this.getEligibleProperties();
+		this.achievements = AchievementList;
 
 		/**
 		* UI Elements
@@ -78,7 +81,11 @@ module.exports = class Game {
 		this.gold += this.goldPerSecond;
 		this.allTimeGold += this.goldPerSecond;
 
-		this.eligibleUpgrades = this.getEligibleUpgrades();
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
+
 		this.updateUI();
 	}
 
@@ -97,6 +104,10 @@ module.exports = class Game {
 	work() {
 		this.gold += this.workValue;
 		this.allTimeGold += this.workValue;
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
 	}
 
 
@@ -166,6 +177,12 @@ module.exports = class Game {
 		property.updateCost();
 		UI.updatePropertyCostUI(property);
 		UI.updatePropertyCountUI(property);
+
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
+
 		this.updateUI();
 
 		return true
@@ -205,6 +222,11 @@ module.exports = class Game {
 		 * Disable button
 		 */
 		button.disabled = true;
+
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
 
 		this.updateUI();
 
@@ -259,6 +281,12 @@ module.exports = class Game {
 		upgrade.owned = true;
 		this.updateWorkValue();
 		this.updateGoldPerSecond();
+
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
+
 		this.updateUI();
 
 		return true;

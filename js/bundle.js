@@ -1,12 +1,64 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
+ * Happy King
+ * Author: Sam Creamer
+ */
+
+const UI = require('./UI');
+
+module.exports = class Achievement {
+  /**
+   * Achievement constructor
+   * @param  {int} id          Unique ID for the achievements
+   * @param  {string} name        Name of achievement
+   * @param  {string} description Description of achievement
+   * @param  {function} criteria takes variables and returns a boolean
+   */
+  constructor(id, name, description, criteria) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.criteria = criteria;
+    this.achieved = false;
+  }
+
+  /**
+   * When an achievement is achieved, run this to add it
+   */
+  earnAchievement() {
+    console.log(this.name);
+    this.achieved = true;
+  }
+
+};
+
+},{"./UI":7}],2:[function(require,module,exports){
+/**
 * Happy King
 * Author: Sam Creamer
 */
 
+const Achievement = require('./Achievement');
+
+module.exports = [
+  // new Achievement(id, name, description, criteria)
+  new Achievement(0, 'Earn 10 Gold', 'You earned 10 gold... now earn more', (game) => game.gold >= 10)
+];
+
+},{"./Achievement":1}],3:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
+/**
+ * Objects
+ */
 const UpgradeList = require('./UpgradeList');
 const WorkerList = require('./WorkerList');
 const PropertyList = require('./PropertyList');
+const AchievementList = require('./AchievementList');
+const AchievementChecker = require('./achievementChecker');
 const Setup = require('./Setup');
 const UI = require('./Ui');
 const Utils = require('./Utils');
@@ -36,11 +88,9 @@ module.exports = class Game {
 		* Global elements
 		*/
 		this.upgrades = UpgradeList;
-		this.eligibleUpgrades = this.getEligibleUpgrades();
 		this.workers = WorkerList;
-		this.eligibleWorkers = this.getEligibleWorkers();
 		this.properties = PropertyList;
-		this.eligibleProperties = this.getEligibleProperties();
+		this.achievements = AchievementList;
 
 		/**
 		* UI Elements
@@ -79,7 +129,11 @@ module.exports = class Game {
 		this.gold += this.goldPerSecond;
 		this.allTimeGold += this.goldPerSecond;
 
-		this.eligibleUpgrades = this.getEligibleUpgrades();
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
+
 		this.updateUI();
 	}
 
@@ -98,6 +152,10 @@ module.exports = class Game {
 	work() {
 		this.gold += this.workValue;
 		this.allTimeGold += this.workValue;
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
 	}
 
 
@@ -167,6 +225,12 @@ module.exports = class Game {
 		property.updateCost();
 		UI.updatePropertyCostUI(property);
 		UI.updatePropertyCountUI(property);
+
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
+
 		this.updateUI();
 
 		return true
@@ -206,6 +270,11 @@ module.exports = class Game {
 		 * Disable button
 		 */
 		button.disabled = true;
+
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
 
 		this.updateUI();
 
@@ -260,6 +329,12 @@ module.exports = class Game {
 		upgrade.owned = true;
 		this.updateWorkValue();
 		this.updateGoldPerSecond();
+
+		/**
+		 * Check if we've earned any achievements
+		 */
+		AchievementChecker.check(this.achievements, this);
+
 		this.updateUI();
 
 		return true;
@@ -359,7 +434,7 @@ module.exports = class Game {
 
 };
 
-},{"./PropertyList":3,"./Setup":4,"./Ui":5,"./UpgradeList":7,"./Utils":8,"./WorkerList":10}],2:[function(require,module,exports){
+},{"./AchievementList":2,"./PropertyList":5,"./Setup":6,"./Ui":8,"./UpgradeList":10,"./Utils":11,"./WorkerList":13,"./achievementChecker":14}],4:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -400,7 +475,7 @@ module.exports = class Property {
 
 };
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -417,7 +492,7 @@ module.exports = [
   new Property(4, 'Brewery', 2000000, 1.2, 19000, 'Everyone loves beer! Brew it for them', 0, 0)
 ];
 
-},{"./Property":2}],4:[function(require,module,exports){
+},{"./Property":4}],6:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -497,7 +572,7 @@ module.exports = class Setup {
 
 }
 
-},{"./Ui":5}],5:[function(require,module,exports){
+},{"./Ui":8}],7:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -525,7 +600,9 @@ module.exports = class UI {
 
 }
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+arguments[4][7][0].apply(exports,arguments)
+},{"dup":7}],9:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -553,7 +630,7 @@ module.exports = class Upgrade {
   }
 };
 
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -566,7 +643,7 @@ module.exports = [
   new Upgrade(0, 0,'corn', 10, 0, 1.5, 'Learn how to farm corn - add 50% to your farming output', 0)
 ];
 
-},{"./Upgrade":6}],8:[function(require,module,exports){
+},{"./Upgrade":9}],11:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -581,7 +658,7 @@ module.exports = class Utils {
   }
 };
 
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -609,7 +686,7 @@ module.exports = class Worker {
   }
 };
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -627,7 +704,41 @@ module.exports = [
   new Worker(5, 4, 'Rookie Brew Master', 10, 'Will make some beer every 8 seconds', 0, 8)
 ];
 
-},{"./Worker":9}],11:[function(require,module,exports){
+},{"./Worker":12}],14:[function(require,module,exports){
+/**
+* Happy King
+* Author: Sam Creamer
+*/
+
+/**
+* This class checks if an achievment has been done. If it has, it awards that achievment
+*/
+module.exports = class AchievementChecker {
+  /**
+   * Checks if any achievements have been earned
+   * @param  {array} achievements all of the achievements
+   * @param  {obj} game         game object
+   */
+  static check(achievements, game) {
+    for (let i = 0; i < achievements.length; i++) {
+      let achievement = achievements[i];
+
+      /**
+      * Skip things we've already achieved
+      */
+      if (achievement.achieved) continue;
+
+      /**
+      * Check if the achievement has been gotten
+      */
+      if (achievement.criteria(game)) {
+        achievement.earnAchievement();
+      }
+    }
+  }
+};
+
+},{}],15:[function(require,module,exports){
 /**
 * Happy King
 * Author: Sam Creamer
@@ -641,4 +752,4 @@ window.setInterval(function () {
   game.gameLoop();
 }, 1000);
 
-},{"./Game":1}]},{},[11]);
+},{"./Game":3}]},{},[15]);

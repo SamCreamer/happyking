@@ -3,8 +3,9 @@
  * Author: Sam Creamer
  */
 
-module.exports = class Achievement {
+const UI = require('./UI');
 
+module.exports = class Achievement {
   /**
    * Achievement constructor
    * @param  {int} id          Unique ID for the achievements
@@ -17,6 +18,15 @@ module.exports = class Achievement {
     this.name = name;
     this.description = description;
     this.criteria = criteria;
-    this.owned = false;
+    this.achieved = false;
   }
+
+  /**
+   * When an achievement is achieved, run this to add it
+   */
+  earnAchievement() {
+    console.log(this.name);
+    this.achieved = true;
+  }
+
 };

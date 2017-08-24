@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "browserify": "^14.4.0"
+    "browserify": "^14.4.0",
+    "decimal.js": "^7.2.3",
+    "swarm-numberformat": "^0.3.5"
   },
   "devDependencies": {},
   "scripts": {

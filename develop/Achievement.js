@@ -3,7 +3,7 @@
  * Author: Sam Creamer
  */
 
-const UI = require('./UI');
+const UI = require('./Ui');
 
 module.exports = class Achievement {
   /**
@@ -25,8 +25,8 @@ module.exports = class Achievement {
    * When an achievement is achieved, run this to add it
    */
   earnAchievement() {
-    console.log(this.name);
     this.achieved = true;
+    UI.addAchievement(this, document.getElementById('achievements'));
   }
 
 };

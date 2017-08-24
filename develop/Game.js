@@ -10,10 +10,15 @@ const UpgradeList = require('./UpgradeList');
 const WorkerList = require('./WorkerList');
 const PropertyList = require('./PropertyList');
 const AchievementList = require('./AchievementList');
-const AchievementChecker = require('./achievementChecker');
+const AchievementChecker = require('./AchievementChecker');
 const Setup = require('./Setup');
 const UI = require('./Ui');
 const Utils = require('./Utils');
+
+/**
+ * Libraries
+ */
+const numberformat = require('swarm-numberformat')
 
 /**
 * Main Game class
@@ -23,6 +28,11 @@ module.exports = class Game {
 	constructor() {
 		// Instead of binding this to everything individually
 		const self = this;
+
+		/**
+		 * Cheat mode
+		 */
+		this.cheatMode = false;
 
 		/**
 		* Game Variables
@@ -43,6 +53,15 @@ module.exports = class Game {
 		this.workers = WorkerList;
 		this.properties = PropertyList;
 		this.achievements = AchievementList;
+
+		/**
+		 * Enable cheating
+		 */
+		if (this.cheatMode) {
+			for (let i = 0; i < this.properties; i++) {
+				this.properties[i].cost = 1;
+			}
+		}
 
 		/**
 		* UI Elements
@@ -93,9 +112,9 @@ module.exports = class Game {
 	* Updates the UI
 	*/
 	updateUI() {
-		this.goldEl.innerHTML = Math.round(this.gold);
-		this.workValueEl.innerHTML = this.workValue;
-		this.gpsValueEl.innerHTML = Utils.roundNumber(this.goldPerSecond, 2);
+		this.goldEl.innerHTML = numberformat.format(this.gold);
+		this.workValueEl.innerHTML = numberformat.format(this.workValue);
+		this.gpsValueEl.innerHTML = numberformat.format(this.goldPerSecond);
 	}
 
 	/**
@@ -239,7 +258,7 @@ module.exports = class Game {
 	* upid {int} Id of the upgrade
 	* return {bool} true if successfully bought
 	*/
-	buyUpgrade(upid) {
+	buyUpgrade(upid, button) {
 		const upgrade = this.upgrades.find(function (upgrade) {
 			return upgrade.id === upid;
 		});
@@ -272,13 +291,19 @@ module.exports = class Game {
 		this.gold -= upgrade.cost;
 		upgrade.owned = true;
 
+
 		/**
 		 * Update the property
 		 */
 		property.workValue += upgrade.workValue;
 		property.workValue *= upgrade.workValueMultiplier;
 
-		upgrade.owned = true;
+
+		/**
+		 * Disable button
+		 */
+		button.disabled = true;
+
 		this.updateWorkValue();
 		this.updateGoldPerSecond();
 
@@ -378,7 +403,7 @@ module.exports = class Game {
 		*/
 		document.querySelectorAll('.buy-upgrade-btn').forEach(function (button) {
 			button.addEventListener('click', function () {
-				self.buyUpgrade(parseInt(this.getAttribute('data-upid')));
+				self.buyUpgrade(parseInt(this.getAttribute('data-upid')), this);
 			});
 		});
 

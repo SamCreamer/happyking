@@ -167,7 +167,8 @@ module.exports = class Game {
 		/**
 		 * UI setup
 		 */
-		Setup.setupPropertyUi(this.properties, this.propertiesDiv);
+		// Setup.setupPropertyUi(this.properties, this.propertiesDiv);
+		UI.propertyUiWaterfall(this.properties, this.propertiesDiv, this);
 		Setup.setupWorkerUi(this.workers, this.workersDiv);
 		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
 
@@ -197,6 +198,7 @@ module.exports = class Game {
 		this.goldEl.innerHTML = numberformat.format(this.gold);
 		this.workValueEl.innerHTML = numberformat.format(this.workValue);
 		this.gpsValueEl.innerHTML = numberformat.format(this.goldPerSecond);
+		UI.propertyUiWaterfall(this.properties, this.propertiesDiv, this);
 	}
 
 	/**
@@ -509,15 +511,29 @@ module.exports = class Property {
   * eligibility {int} How much gold do you need to earn before you are eglibigle to see this upgrade
   * count {int} How many of these are owned (maybe not the best structure for this type of variable)
   */
-  constructor(id, name, cost, costMultiplier, workValue, description, eligibility, count) {
+  constructor(id, name, cost, costMultiplier, workValue, description, count) {
     this.id = id;
     this.name = name;
     this.cost = cost;
     this.costMultiplier = costMultiplier;
     this.workValue = workValue;
     this.description = description;
-    this.eligibility = eligibility;
     this.count = count;
+    /**
+     * Set eligibility
+     * @type {float}
+     */
+    this.eligibility = this.cost <= 100 ? 0 : this.cost * 0.7;
+    /**
+     * Boolean. true if this property is shown in the UI
+     * @type {Boolean}
+     */
+    this.shown = false;
+    /**
+     * Boolean. true if ui is locked
+     * @type {Boolean}
+     */
+    this.locked = false;
   }
 
   /**
@@ -543,22 +559,22 @@ module.exports = class Property {
 const Property = require('./Property');
 
 module.exports = [
-  //new Property(id, name, cost, costMultiplier, workValue, description, eligibility, count)
-  new Property(0, 'Small Farm', 10, 1.3, 1,'Buy more farms to harvest more crops', 0, 1),
-  new Property(1, 'General Store', 1000, 1.1, 20,'Buy a general store to earn some gold', 0, 0),
-  new Property(2, 'Sword Sharpening Store', 10000, 1.2, 100, 'Sharpen swords for other people in the kingdom!', 0, 0),
-  new Property(3, 'Small Inn', 120000, 1.2, 2500, 'Let guests spend the night in your comfortable Inn', 0, 0),
-  new Property(4, 'Brewery', 2000000, 1.2, 19000, 'Everyone loves beer! Brew it for them', 0, 0),
-  new Property(5, 'Big Farm', 4000000, 1.5, 46000, 'You can farm more stuff here!', 0, 0),
-  new Property(6, 'Circus', 10000000, 1.45, 80000, 'Entertain the folks with circus acts', 0, 0),
-  new Property(7, 'Local Pub', 18000000, 1.5, 260000, 'The ultimate local business', 0, 0),
-  new Property(8, 'Apothecary', 40000000, 1.2, 500000, 'The old school pharmacy', 0, 0),
-  new Property(9, 'Art Studio', 100000000, 1.7, 1200000, 'Being an artist made people rich back in the day', 0, 0),
-  new Property(10, 'Big Inn', 50000000, 1.9, 4000000, 'A huge inn that holds thousands of peasant guests', 0, 0),
-  new Property(11, 'Massive Farm', 120000000, 2, 10000000, 'An absolutely massive farm. Farms all kinds of shit', 0, 0),
-  new Property(12, 'Small Chapel', 400000000, 1.5, 22000000, 'People love praying. They pay membership fees to your chapel!', 0, 0),
-  new Property(13, 'Bronze Mine', 1000000000, 1.8, 70000000, 'The era of precious metals is upon us! Mine some bronze', 0, 0),
-  new Property(14, 'Armory', 6000000000, 1.6, 170000000, 'Buy an armory to train workers and conquer land. It makes you rich', 0, 0)
+  //new Property(id, name, cost, costMultiplier, workValue, description, count)
+  new Property(0, 'Small Farm', 10, 1.3, 1,'Buy more farms to harvest more crops', 1),
+  new Property(1, 'General Store', 1000, 1.1, 20,'Buy a general store to earn some gold', 0),
+  new Property(2, 'Sword Sharpening Store', 10000, 1.2, 100, 'Sharpen swords for other people in the kingdom!', 0),
+  new Property(3, 'Small Inn', 120000, 1.2, 2500, 'Let guests spend the night in your comfortable Inn', 0),
+  new Property(4, 'Brewery', 2000000, 1.2, 19000, 'Everyone loves beer! Brew it for them', 0),
+  new Property(5, 'Big Farm', 4000000, 1.5, 46000, 'You can farm more stuff here!', 0),
+  new Property(6, 'Circus', 10000000, 1.45, 80000, 'Entertain the folks with circus acts', 0),
+  new Property(7, 'Local Pub', 18000000, 1.5, 260000, 'The ultimate local business', 0),
+  new Property(8, 'Apothecary', 40000000, 1.2, 500000, 'The old school pharmacy', 0),
+  new Property(9, 'Art Studio', 100000000, 1.7, 1200000, 'Being an artist made people rich back in the day', 0),
+  new Property(10, 'Big Inn', 50000000, 1.9, 4000000, 'A huge inn that holds thousands of peasant guests', 0),
+  new Property(11, 'Massive Farm', 120000000, 2, 10000000, 'An absolutely massive farm. Farms all kinds of shit', 0),
+  new Property(12, 'Small Chapel', 400000000, 1.5, 22000000, 'People love praying. They pay membership fees to your chapel!', 0),
+  new Property(13, 'Bronze Mine', 1000000000, 1.8, 70000000, 'The era of precious metals is upon us! Mine some bronze', 0),
+  new Property(14, 'Armory', 6000000000, 1.6, 170000000, 'Buy an armory to train workers and conquer land. It makes you rich', 0)
 ];
 
 },{"./Property":5}],7:[function(require,module,exports){
@@ -667,7 +683,11 @@ module.exports = class UI {
   */
   static updatePropertyCostUI(property) {
     const el = document.querySelector('[data-propid-container="' + property.id + '"]').querySelector('.property-cost');
-    el.innerHTML = numberformat.format(property.cost);
+    if (property.locked) {
+      el.innerHTML = '-';
+    } else {
+      el.innerHTML = numberformat.format(property.cost);
+    }
   }
 
   /**
@@ -682,6 +702,88 @@ module.exports = class UI {
 
     const clone = document.importNode(template, true);
     achievementDiv.appendChild(clone);
+  }
+
+  /**
+   * Shows properties that you can buy as well as properties coming up
+   * @param  {array} properties
+   */
+  static propertyUiWaterfall(properties, propertyDiv, game) {
+
+    /**
+     * Get the ones that are locked that we need to unlock first
+     */
+    const toUnlock = properties.filter(function (property) {
+      return game.allTimeGold >= property.eligibility && property.locked === true;
+    });
+
+    for (let i = 0; i < toUnlock.length; i++) {
+      const el = document.querySelector("[data-propid-container='" + toUnlock[i].id + "']");
+      el.querySelector('.property-name').innerHTML = toUnlock[i].name;
+      el.querySelector('.property-desc').innerHTML = toUnlock[i].description;
+
+      el.querySelector('.buy-property-btn').setAttribute('data-propid', toUnlock[i].id);
+      el.querySelector('.buy-property-btn').addEventListener('click', function () {
+				game.buyProperty(parseInt(this.getAttribute('data-propid')));
+			});
+      toUnlock[i].locked = false;
+
+      UI.updatePropertyCostUI(toUnlock[i]);
+      UI.updatePropertyCountUI(toUnlock[i]);
+    }
+
+    /**
+     * Next get the eligible properties and make UI elements with them. Only should really get anything here on the first iteration of this method
+     * TODO: maybe improve this? This code is kinda unnecessary
+     */
+    const toShowAndNotLock = properties.filter(function (property) {
+      return game.allTimeGold >= property.eligibility && property.shown === false && property.locked === false;
+    });
+
+    for (let i = 0; i < toShowAndNotLock.length; i++) {
+      const template = document.getElementById('property_template').content;
+
+      template.querySelector('.property-row').setAttribute('data-propid-container', toShowAndNotLock[i].id);
+
+      template.querySelector('.property-name').innerHTML = toShowAndNotLock[i].name;
+      template.querySelector('.property-desc').innerHTML = toShowAndNotLock[i].description;
+
+      template.querySelector('.buy-property-btn').setAttribute('data-propid', toShowAndNotLock[i].id);
+
+      const clone = document.importNode(template, true);
+      propertyDiv.appendChild(clone);
+
+      toShowAndNotLock[i].shown = true;
+
+      UI.updatePropertyCostUI(toShowAndNotLock[i]);
+      UI.updatePropertyCountUI(toShowAndNotLock[i]);
+    }
+
+    /**
+     * Lastly, take the ones that should be locked and make a UI thing and lock them
+     */
+    const toShowAndLock = properties.filter(function (property) {
+      return game.allTimeGold >= (property.eligibility * 0.7) && property.shown === false && property.locked === false;
+    });
+
+    for (let i = 0; i < toShowAndLock.length; i++) {
+      const template = document.getElementById('property_template').content;
+
+      template.querySelector('.property-row').setAttribute('data-propid-container', toShowAndLock[i].id);
+
+      template.querySelector('.property-name').innerHTML = 'Locked';
+      template.querySelector('.property-desc').innerHTML = '';
+
+      const clone = document.importNode(template, true);
+      propertyDiv.appendChild(clone);
+
+      toShowAndLock[i].locked = true;
+      toShowAndLock[i].shown = true;
+
+      UI.updatePropertyCostUI(toShowAndLock[i]);
+      UI.updatePropertyCountUI(toShowAndLock[i]);
+    }
+
   }
 
 }

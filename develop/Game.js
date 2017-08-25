@@ -85,7 +85,8 @@ module.exports = class Game {
 		/**
 		 * UI setup
 		 */
-		Setup.setupPropertyUi(this.properties, this.propertiesDiv);
+		// Setup.setupPropertyUi(this.properties, this.propertiesDiv);
+		UI.propertyUiWaterfall(this.properties, this.propertiesDiv, this);
 		Setup.setupWorkerUi(this.workers, this.workersDiv);
 		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
 
@@ -115,6 +116,7 @@ module.exports = class Game {
 		this.goldEl.innerHTML = numberformat.format(this.gold);
 		this.workValueEl.innerHTML = numberformat.format(this.workValue);
 		this.gpsValueEl.innerHTML = numberformat.format(this.goldPerSecond);
+		UI.propertyUiWaterfall(this.properties, this.propertiesDiv, this);
 	}
 
 	/**

@@ -714,7 +714,7 @@ module.exports = class UI {
      * Get the ones that are locked that we need to unlock first
      */
     const toUnlock = properties.filter(function (property) {
-      return game.allTimeGold >= property.eligibility && property.locked === true;
+      return game.allTimeGold >= property.eligibility && property.locke;
     });
 
     for (let i = 0; i < toUnlock.length; i++) {
@@ -737,7 +737,7 @@ module.exports = class UI {
      * TODO: maybe improve this? This code is kinda unnecessary
      */
     const toShowAndNotLock = properties.filter(function (property) {
-      return game.allTimeGold >= property.eligibility && property.shown === false && property.locked === false;
+      return game.allTimeGold >= property.eligibility && !property.shown && !property.locked;
     });
 
     for (let i = 0; i < toShowAndNotLock.length; i++) {
@@ -763,27 +763,53 @@ module.exports = class UI {
      * Lastly, take the ones that should be locked and make a UI thing and lock them
      */
     const toShowAndLock = properties.filter(function (property) {
-      return game.allTimeGold >= (property.eligibility * 0.7) && property.shown === false && property.locked === false;
+      return game.allTimeGold >= (property.eligibility * 0.7) && !property.shown && !property.locked;
     });
 
-    for (let i = 0; i < toShowAndLock.length; i++) {
-      const template = document.getElementById('property_template').content;
-
-      template.querySelector('.property-row').setAttribute('data-propid-container', toShowAndLock[i].id);
-
-      template.querySelector('.property-name').innerHTML = 'Locked';
-      template.querySelector('.property-desc').innerHTML = '';
-
-      const clone = document.importNode(template, true);
-      propertyDiv.appendChild(clone);
-
-      toShowAndLock[i].locked = true;
-      toShowAndLock[i].shown = true;
-
-      UI.updatePropertyCostUI(toShowAndLock[i]);
-      UI.updatePropertyCountUI(toShowAndLock[i]);
+    /**
+     * If there's none to show, show at least one
+     * @param  {[type]} toShowAndLock [description]
+     * @return {[type]}               [description]
+     */
+    if (toShowAndLock.length === 0) {
+      const locked = properties.filter(function (property) {
+        return property.locked;
+      });
+      if (locked.length === 0) {
+        const shown = properties.filter(function (property) {
+          return property.shown;
+        });
+        UI.showAndLock(properties[shown.length], propertyDiv);
+      }
+    } else {
+      for (let i = 0; i < toShowAndLock.length; i++) {
+        UI.showAndLock(toShowAndLock[i], propertyDiv);
+      }
     }
 
+
+  }
+
+  /**
+   * Shows and locks a property UI element
+   * @param  {obj} property
+   */
+  static showAndLock(property, propertyDiv) {
+    const template = document.getElementById('property_template').content;
+
+    template.querySelector('.property-row').setAttribute('data-propid-container', property.id);
+
+    template.querySelector('.property-name').innerHTML = 'Locked';
+    template.querySelector('.property-desc').innerHTML = '';
+
+    const clone = document.importNode(template, true);
+    propertyDiv.appendChild(clone);
+
+    property.locked = true;
+    property.shown = true;
+
+    UI.updatePropertyCostUI(property);
+    UI.updatePropertyCountUI(property);
   }
 
 }

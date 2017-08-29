@@ -206,7 +206,7 @@ module.exports = class Game {
 
 		this.updateUI();
 
-		return true
+		return true;
 	}
 
 	/**

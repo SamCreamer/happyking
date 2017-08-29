@@ -54,22 +54,11 @@ module.exports = class UI {
      * Get the ones that are locked that we need to unlock first
      */
     const toUnlock = properties.filter(function (property) {
-      return game.allTimeGold >= property.eligibility && property.locke;
+      return game.allTimeGold >= property.eligibility && property.locked;
     });
 
     for (let i = 0; i < toUnlock.length; i++) {
-      const el = document.querySelector("[data-propid-container='" + toUnlock[i].id + "']");
-      el.querySelector('.property-name').innerHTML = toUnlock[i].name;
-      el.querySelector('.property-desc').innerHTML = toUnlock[i].description;
-
-      el.querySelector('.buy-property-btn').setAttribute('data-propid', toUnlock[i].id);
-      el.querySelector('.buy-property-btn').addEventListener('click', function () {
-				game.buyProperty(parseInt(this.getAttribute('data-propid')));
-			});
-      toUnlock[i].locked = false;
-
-      UI.updatePropertyCostUI(toUnlock[i]);
-      UI.updatePropertyCountUI(toUnlock[i]);
+      UI.unlockProperty(toUnlock[i], propertyDiv, game);
     }
 
     /**
@@ -81,22 +70,7 @@ module.exports = class UI {
     });
 
     for (let i = 0; i < toShowAndNotLock.length; i++) {
-      const template = document.getElementById('property_template').content;
-
-      template.querySelector('.property-row').setAttribute('data-propid-container', toShowAndNotLock[i].id);
-
-      template.querySelector('.property-name').innerHTML = toShowAndNotLock[i].name;
-      template.querySelector('.property-desc').innerHTML = toShowAndNotLock[i].description;
-
-      template.querySelector('.buy-property-btn').setAttribute('data-propid', toShowAndNotLock[i].id);
-
-      const clone = document.importNode(template, true);
-      propertyDiv.appendChild(clone);
-
-      toShowAndNotLock[i].shown = true;
-
-      UI.updatePropertyCostUI(toShowAndNotLock[i]);
-      UI.updatePropertyCountUI(toShowAndNotLock[i]);
+      UI.showAndNotLockProperty(toShowAndNotLock[i], propertyDiv);
     }
 
     /**
@@ -119,14 +93,15 @@ module.exports = class UI {
         const shown = properties.filter(function (property) {
           return property.shown;
         });
-        UI.showAndLock(properties[shown.length], propertyDiv);
+        if (properties[shown.length] !== undefined) { // to make it not show empty ones at the end
+          UI.showAndLockProperty(properties[shown.length], propertyDiv);
+        }
       }
     } else {
       for (let i = 0; i < toShowAndLock.length; i++) {
-        UI.showAndLock(toShowAndLock[i], propertyDiv);
+        UI.showAndLockProperty(toShowAndLock[i], propertyDiv);
       }
     }
-
 
   }
 
@@ -134,7 +109,7 @@ module.exports = class UI {
    * Shows and locks a property UI element
    * @param  {obj} property
    */
-  static showAndLock(property, propertyDiv) {
+  static showAndLockProperty(property, propertyDiv) {
     const template = document.getElementById('property_template').content;
 
     template.querySelector('.property-row').setAttribute('data-propid-container', property.id);
@@ -142,11 +117,66 @@ module.exports = class UI {
     template.querySelector('.property-name').innerHTML = 'Locked';
     template.querySelector('.property-desc').innerHTML = '';
 
+    const btn = template.querySelector('.buy-property-btn');
+    btn.setAttribute('data-propid', property.id);
+
+    btn.style.display = 'none';
+
     const clone = document.importNode(template, true);
     propertyDiv.appendChild(clone);
 
     property.locked = true;
     property.shown = true;
+
+    UI.updatePropertyCostUI(property);
+    UI.updatePropertyCountUI(property);
+  }
+
+  /**
+   * Shows an unlocked property
+   * @param  {obj} property
+   * @param  {html} propertyDiv
+   */
+  static showAndNotLockProperty(property, propertyDiv) {
+    const template = document.getElementById('property_template').content;
+
+    template.querySelector('.property-row').setAttribute('data-propid-container', property.id);
+
+    template.querySelector('.property-name').innerHTML = property.name;
+    template.querySelector('.property-desc').innerHTML = property.description;
+
+    template.querySelector('.buy-property-btn').setAttribute('data-propid', property.id);
+
+    const clone = document.importNode(template, true);
+    propertyDiv.appendChild(clone);
+
+    property.shown = true;
+
+    UI.updatePropertyCostUI(property);
+    UI.updatePropertyCountUI(property);
+  }
+
+  /**
+   * Unlocks a property
+   * @param  {obj} property
+   * @param  {html} propertyDiv
+   */
+  static unlockProperty(property, propertyDiv, game) {
+    console.log(property);
+    const el = document.querySelector("[data-propid-container='" + property.id + "']");
+    el.querySelector('.property-name').innerHTML = property.name;
+    el.querySelector('.property-desc').innerHTML = property.description;
+
+    const btn = el.querySelector('.buy-property-btn');
+
+    btn.setAttribute('data-propid', property.id);
+    btn.addEventListener('click', function () {
+      game.buyProperty(parseInt(this.getAttribute('data-propid')));
+    });
+
+    btn.style.display = 'inline-block';
+
+    property.locked = false;
 
     UI.updatePropertyCostUI(property);
     UI.updatePropertyCountUI(property);

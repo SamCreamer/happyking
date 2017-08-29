@@ -47,6 +47,8 @@ module.exports = class UI {
   /**
    * Shows properties that you can buy as well as properties coming up
    * @param  {array} properties
+   * @param  {html} propertyDiv
+   * @param  {obj} game
    */
   static propertyUiWaterfall(properties, propertyDiv, game) {
 

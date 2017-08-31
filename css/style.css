@@ -1,3 +1,7 @@
 .tab-content {
   padding: 15px;
 }
+
+.dash {
+  display: none;
+}

@@ -22,5 +22,7 @@ module.exports = class Worker {
     this.eligibility = eligibility;
     this.secondsToWork = secondsToWork;
     this.hired = false;
+    this.shown = false;
+    this.locked = false;
   }
 };

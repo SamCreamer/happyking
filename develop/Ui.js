@@ -4,7 +4,7 @@
 */
 
 
-const numberformat = require('swarm-numberformat')
+const numberformat = require('swarm-numberformat');
 
 /**
 * This module is for strictly UI related things
@@ -50,7 +50,13 @@ module.exports = class UI {
    * @param  {html} propertyDiv
    * @param  {obj} game
    */
-  static propertyUiWaterfall(properties, propertyDiv, game) {
+  static uiWaterfall(game) {
+
+    /**
+     * Important vars
+     */
+    const properties = game.properties;
+    const workers = game.workers;
 
     /**
      * Get the ones that are locked that we need to unlock first
@@ -60,7 +66,19 @@ module.exports = class UI {
     });
 
     for (let i = 0; i < toUnlock.length; i++) {
-      UI.unlockProperty(toUnlock[i], propertyDiv, game);
+      const relevantWorkers = workers.filter(function (worker) {
+        return worker.propId === toUnlock[i].id;
+      });
+
+      UI.unlockProperty(toUnlock[i], game);
+
+      /**
+       * Also lock workers
+       */
+      for (let j = 0; j < relevantWorkers.length; j++) {
+        UI.unlockWorker(relevantWorkers[j], game);
+      }
+
     }
 
     /**
@@ -72,7 +90,15 @@ module.exports = class UI {
     });
 
     for (let i = 0; i < toShowAndNotLock.length; i++) {
-      UI.showAndNotLockProperty(toShowAndNotLock[i], propertyDiv);
+      const relevantWorkers = workers.filter(function (worker) {
+        return worker.propId === toShowAndNotLock[i].id;
+      });
+
+      UI.showAndNotLockProperty(toShowAndNotLock[i]);
+
+      for (let j = 0; j < relevantWorkers.length; j++) {
+        UI.showAndNotLockWorker(relevantWorkers[j], game);
+      }
     }
 
     /**
@@ -96,12 +122,28 @@ module.exports = class UI {
           return property.shown;
         });
         if (properties[shown.length] !== undefined) { // to make it not show empty ones at the end
-          UI.showAndLockProperty(properties[shown.length], propertyDiv);
+          const relevantWorkers = workers.filter(function (worker) {
+            return worker.propId === properties[shown.length].id;
+          });
+
+          UI.showAndLockProperty(properties[shown.length]);
+
+          for (let j = 0; j < relevantWorkers.length; j++) {
+            UI.showAndLockWorker(relevantWorkers[j], game);
+          }
         }
       }
     } else {
       for (let i = 0; i < toShowAndLock.length; i++) {
-        UI.showAndLockProperty(toShowAndLock[i], propertyDiv);
+        const relevantWorkers = workers.filter(function (worker) {
+          return worker.propId === toShowAndLock[i].id;
+        });
+
+        UI.showAndLockProperty(toShowAndLock[i]);
+
+        for (let j = 0; j < relevantWorkers.length; j++) {
+          UI.showAndLockWorker(relevantWorkers[j], game);
+        }
       }
     }
 
@@ -111,7 +153,9 @@ module.exports = class UI {
    * Shows and locks a property UI element
    * @param  {obj} property
    */
-  static showAndLockProperty(property, propertyDiv) {
+  static showAndLockProperty(property) {
+    const propertyDiv = document.getElementById('properties');
+
     const template = document.getElementById('property_template').content;
 
     template.querySelector('.property-row').setAttribute('data-propid-container', property.id);
@@ -139,7 +183,9 @@ module.exports = class UI {
    * @param  {obj} property
    * @param  {html} propertyDiv
    */
-  static showAndNotLockProperty(property, propertyDiv) {
+  static showAndNotLockProperty(property) {
+    const propertyDiv = document.getElementById('properties');
+
     const template = document.getElementById('property_template').content;
 
     template.querySelector('.property-row').setAttribute('data-propid-container', property.id);
@@ -149,7 +195,16 @@ module.exports = class UI {
 
     template.querySelector('.buy-property-btn').setAttribute('data-propid', property.id);
 
+    template.querySelectorAll('.dash').forEach(function (ele) {
+      ele.style.display = 'inline';
+    });
+
     const clone = document.importNode(template, true);
+
+    template.querySelectorAll('.dash').forEach(function (ele) {
+      ele.style.display = 'none';
+    });
+
     propertyDiv.appendChild(clone);
 
     property.shown = true;
@@ -163,11 +218,16 @@ module.exports = class UI {
    * @param  {obj} property
    * @param  {html} propertyDiv
    */
-  static unlockProperty(property, propertyDiv, game) {
-    console.log(property);
+  static unlockProperty(property, game) {
+    const propertyDiv = document.getElementById('properties');
+
     const el = document.querySelector("[data-propid-container='" + property.id + "']");
     el.querySelector('.property-name').innerHTML = property.name;
     el.querySelector('.property-desc').innerHTML = property.description;
+
+    el.querySelectorAll('.dash').forEach(function (ele) {
+      ele.style.display = 'inline';
+    });
 
     const btn = el.querySelector('.buy-property-btn');
 
@@ -182,6 +242,83 @@ module.exports = class UI {
 
     UI.updatePropertyCostUI(property);
     UI.updatePropertyCountUI(property);
+  }
+
+  /**
+   * show and lock worker
+   * @param  {obj} worker
+   */
+  static showAndLockWorker(worker) {
+    const workerDiv = document.querySelector('#workers');
+
+    const template = document.getElementById('worker_template').content;
+
+    template.querySelector('.worker-row').setAttribute('data-workerid-container', worker.id);
+
+    template.querySelector('.worker-name').innerHTML = 'Locked';
+    template.querySelector('.worker-desc').innerHTML = '';
+
+    const btn = template.querySelector('.buy-worker-btn');
+    btn.setAttribute('data-workerid', worker.id);
+
+    btn.style.display = 'none';
+
+    const clone = document.importNode(template, true);
+    workerDiv.appendChild(clone);
+
+    worker.locked = true;
+    worker.shown = true;
+
+  }
+
+  /**
+   * showAndNotLockWorker
+   * @param  {obj} worker
+   */
+  static showAndNotLockWorker(worker) {
+    const workerDiv = document.querySelector('#workers');
+
+    const template = document.getElementById('worker_template').content;
+
+    template.querySelector('.worker-name').innerHTML = worker.name;
+    template.querySelector('.worker-desc').innerHTML = worker.description;
+    template.querySelector('.worker-cost').innerHTML = worker.cost;
+
+    const btn = template.querySelector('.buy-worker-btn');
+
+    btn.setAttribute('data-workerid', worker.id);
+
+    const clone = document.importNode(template, true);
+    workerDiv.appendChild(clone);
+
+    worker.shown = true;
+
+  }
+
+  /**
+   * Unlock worker
+   * @param  {obj} worker
+   */
+  static unlockWorker(worker, game) {
+    const el = document.querySelector("[data-workerid-container='" + worker.id + "']");
+    el.querySelector('.worker-name').innerHTML = worker.name;
+    el.querySelector('.worker-desc').innerHTML = worker.description;
+
+    el.querySelectorAll('.dash').forEach(function (ele) {
+      ele.style.display = 'inline';
+    });
+
+    const btn = el.querySelector('.buy-worker-btn');
+
+    btn.setAttribute('data-workerid', worker.id);
+
+    btn.addEventListener('click', function () {
+      game.buyWorker(parseInt(this.getAttribute('data-worker')), this);
+    });
+
+    btn.style.display = 'inline-block';
+
+    worker.locked = false;
   }
 
 }

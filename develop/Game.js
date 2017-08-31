@@ -76,10 +76,18 @@ module.exports = class Game {
 
 		/**
 		* Button Listeners
+		* TODO: Make these click events part of a Throttle object
 		*/
+		let lastClick = 0;
+		const MAX_CPS = 20;
 		this.mainBtn.addEventListener('click', function () {
-			self.work()
-			self.updateUI();
+			if (Date.now() - lastClick > (1000 / MAX_CPS)) {
+				self.work()
+				self.updateUI();
+				lastClick = Date.now();
+			} else {
+				console.log('You are clicking too fast! Are you trying to cheat?');
+			}
 		});
 
 		/**

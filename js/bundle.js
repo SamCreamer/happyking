@@ -306,6 +306,7 @@ module.exports = class Game {
 	* return {bool} true if successfully bought
 	*/
 	buyWorker(workerid, button) {
+
 		const worker = this.workers.find(function (worker) {
 			return worker.id === workerid;
 		});
@@ -981,7 +982,7 @@ module.exports = class UI {
     btn.setAttribute('data-workerid', worker.id);
 
     btn.addEventListener('click', function () {
-      game.buyWorker(parseInt(this.getAttribute('data-worker')), this);
+      game.buyWorker(parseInt(this.getAttribute('data-workerid')), this);
     });
 
     btn.style.display = 'inline-block';

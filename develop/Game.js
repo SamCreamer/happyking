@@ -224,6 +224,7 @@ module.exports = class Game {
 	* return {bool} true if successfully bought
 	*/
 	buyWorker(workerid, button) {
+
 		const worker = this.workers.find(function (worker) {
 			return worker.id === workerid;
 		});

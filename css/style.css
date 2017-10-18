@@ -5,3 +5,18 @@
 .dash {
   display: none;
 }
+
+.wood-border {
+    border: 7px solid transparent;
+    padding: 15px;
+    -webkit-border-image:url('../assets/wood_frame.jpg') 7 round; /* Safari 3.1-5 */
+    -o-border-image: url('../assets/wood_frame.jpg') 7 round; /* Opera 11-12.1 */
+    border-image: url('../assets/wood_frame.jpg') 7 round;
+    background-image: url('../assets/wood_texture.jpg');
+}
+
+.property-panel {
+  border: none;
+  background: rgba(0, 0, 0, 0);
+  color: #fff;
+}

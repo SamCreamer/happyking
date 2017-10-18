@@ -114,7 +114,12 @@ module.exports = class Game {
 		/**
 		 * Cheat mode
 		 */
-		this.cheatMode = false;
+		this.cheatMode = true;
+
+		/**
+		 * Meta
+		 */
+		this.saveCounter = 0; // Saves once every x count
 
 		/**
 		* Game Variables
@@ -124,9 +129,14 @@ module.exports = class Game {
 		this.workValue = 1;
 		this.multiplier = 1;
 		this.goldPerSecond = 0;
+
+		/**
+		 * Metadata for loading/saving
+		 */
 		this.ownedProperties = {};
 		this.hiredWorkers = {};
 		this.ownedUpgrades = {};
+		this.achievedAchievements = {};
 
 		/**
 		* Global elements
@@ -156,6 +166,16 @@ module.exports = class Game {
 		this.workersDiv = document.getElementById('workers');
 		this.upgradesDiv = document.getElementById('upgrades');
 
+	}
+
+	/**
+	 * starts game
+	 * @type {[type]}
+	 */
+	start () {
+
+		const self = this;
+
 		/**
 		* Button Listeners
 		* TODO: Make these click events part of a Throttle object
@@ -181,7 +201,50 @@ module.exports = class Game {
 		Setup.setupUpgradeUi(this.upgrades, this.upgradesDiv);
 
 		this.bindButtons();
+	}
 
+	/**
+	 * Loads game
+	 * @param  {[type]} game [description]
+	 * @return {[type]}      [description]
+	 */
+	load() {
+		this.gold = parseFloat(localStorage.getItem('gold'));
+		this.allTimeGold = parseFloat(localStorage.getItem('allTimeGold'));
+		this.workValue = parseFloat(localStorage.getItem('workValue'));
+		this.multiplier = parseFloat(localStorage.getItem('multiplier'));
+		this.goldPerSecond = parseFloat(localStorage.getItem('goldPerSecond'));
+		this.ownedUpgrades = JSON.parse(localStorage.getItem('upgrades'));
+		this.hiredWorkers = JSON.parse(localStorage.getItem('workers'));
+		this.ownedProperties = JSON.parse(localStorage.getItem('properties'));
+		this.achievedAchievements = JSON.parse(localStorage.getItem('achievements'));
+
+		/**
+		 * load the properties
+		 */
+		for (let i in this.ownedProperties) {
+			console.log(`${i} : ${this.ownedProperties[i]}`);
+			this.properties[i].count = this.ownedProperties[i];
+			console.log(`property ${i} has ${this.properties[i].count}`);
+		}
+
+	}
+
+	/**
+	 * Saves game
+	 * @return {[type]} [description]
+	 */
+	save() {
+		localStorage.setItem('saved', true);
+		localStorage.setItem('gold', this.gold);
+		localStorage.setItem('allTimeGold', this.allTimeGold);
+		localStorage.setItem('workValue', this.workValue);
+		localStorage.setItem('multiplier', this.multiplier);
+		localStorage.setItem('goldPerSecond', this.goldPerSecond);
+		localStorage.setItem('upgrades', JSON.stringify(this.ownedUpgrades));
+		localStorage.setItem('workers', JSON.stringify(this.hiredWorkers));
+		localStorage.setItem('properties', JSON.stringify(this.ownedProperties));
+		localStorage.setItem('achievements', JSON.stringify(this.achievedAchievements));
 	}
 
 	/**
@@ -195,6 +258,16 @@ module.exports = class Game {
 		 * Check if we've earned any achievements
 		 */
 		AchievementChecker.check(this.achievements, this);
+
+		/**
+		 * Save the game once per minute
+		 */
+		if (this.saveCounter % 5 === 0) {
+			this.save();
+			this.saveCounter = 1;
+		} else {
+			this.saveCounter++;
+		}
 
 		this.updateUI();
 	}
@@ -270,6 +343,7 @@ module.exports = class Game {
 		this.gold -= property.cost;
 		this.workValue += property.workValue;
 		property.count += 1;
+		this.ownedProperties[propid] = property.count;
 
 		/**
 		 * Make sure workers work on these properties
@@ -295,6 +369,8 @@ module.exports = class Game {
 		AchievementChecker.check(this.achievements, this);
 
 		this.updateUI();
+
+		this.save();
 
 		return true;
 	}
@@ -1115,6 +1191,12 @@ module.exports = [
 const Game = require('./Game');
 
 const game = new Game();
+
+if (localStorage.getItem('saved')) {
+  game.load();
+}
+
+game.start();
 
 window.setInterval(function () {
   game.gameLoop();
